@@ -21,16 +21,17 @@
 ### Track B: MedGemma Inference (Person 2)
 | Status | Task | Notes |
 |--------|------|-------|
-| [ ] | Set up HF Inference API test | Use existing HF token |
-| [ ] | Test on 1 prescription image | Colombian sample |
-| [ ] | Test on 1 lab result image | Colombian sample |
-| [ ] | Evaluate extraction quality | Document accuracy |
-| [ ] | Create `src/inference/medgemma.py` stub | Abstraction layer |
+| [x] | Set up Modal inference backend | `src/inference/modal_app.py` - A10G GPU |
+| [x] | Create `src/inference/medgemma.py` | Abstraction layer with ModalBackend + TransformersBackend |
+| [x] | Create validation script | `scripts/validate_extraction.py` |
+| [x] | Test on 1 prescription image | ✅ Extracted 2 medications correctly |
+| [x] | Test on 1 clinical record image | ✅ Extracted diagnosis, symptoms, treatment |
+| [x] | Evaluate extraction quality | GO - see results below |
 
 ### Phase 1 Checkpoint ✓
 - [x] **GO/NO-GO**: CUM API returns drug data ✅ Confirmed
 - [x] **GO/NO-GO**: SISMED API returns price data ✅ Confirmed (note: data from 2019)
-- [ ] **GO/NO-GO**: MedGemma extracts readable text from images
+- [x] **GO/NO-GO**: MedGemma extracts readable text from images ✅ Confirmed (prescription + clinical record)
 
 ---
 
@@ -110,6 +111,9 @@
 | Jan 20 | Use HF Inference API as primary | De-risks GPU availability on Kaggle |
 | Jan 20 | SISMED prices are "reference only" | Data is from 2019, show date to users |
 | Jan 20 | Link CUM→SISMED via expedientecum | Shared field enables price lookup for drugs |
+| Jan 20 | Use Modal A10G for inference | Pay-per-use (~$0.36/hr), 24GB VRAM, local dev + remote inference |
+| Jan 20 | Backend abstraction layer | Supports Modal (dev) and Transformers (Kaggle) backends |
+| Jan 20 | Use MedGemma 1.5 4B IT | `google/medgemma-1.5-4b-it` - newer version with thinking support |
 
 ---
 
@@ -124,6 +128,15 @@ _Update this section as you complete tasks._
   - Created `src/api/cum.py` with `search_by_active_ingredient()`, `find_generics()`
   - Created `src/api/sismed.py` with `get_price_by_expediente()`, `get_price_range()`
   - Key finding: `expedientecum` field links both datasets
+- **Jan 20**: Track B infrastructure ready
+  - Created `src/inference/modal_app.py` - Modal A10G GPU function
+  - Created `src/inference/medgemma.py` - abstraction layer with dataclasses
+  - Created `scripts/validate_extraction.py` - validation script
+- **Jan 20**: Track B validation complete ✅ **GO**
+  - Prescription extraction: 2/2 medications extracted correctly (EXOMEGA, LUXONA)
+  - Clinical record extraction: diagnosis (Apnea Obstructiva), symptoms, treatment extracted
+  - Model: `google/medgemma-1.5-4b-it` with thinking mode handled
+  - Fixed: thinking mode output parsing (`<unused95>` marker), dtype deprecation
 
 ### Week 2
 -
