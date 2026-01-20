@@ -12,11 +12,11 @@
 ### Track A: APIs & Data (Person 1)
 | Status | Task | Notes |
 |--------|------|-------|
-| [ ] | Test CUM API query | `datos.gov.co/resource/i7cb-raxc.json` |
-| [ ] | Test SISMED API query | `datos.gov.co/resource/3he6-m866.json` |
-| [ ] | Document API response formats | Fields, rate limits, data freshness |
-| [ ] | Create `src/api/cum.py` stub | Basic query function |
-| [ ] | Create `src/api/sismed.py` stub | Basic query function |
+| [x] | Test CUM API query | `datos.gov.co/resource/i7cb-raxc.json` - works, ~35k+ products |
+| [x] | Test SISMED API query | `datos.gov.co/resource/3he6-m866.json` - works, data from 2019 |
+| [x] | Document API response formats | Documented in src/api/*.py docstrings |
+| [x] | Create `src/api/cum.py` stub | `search_by_active_ingredient()`, `find_generics()` |
+| [x] | Create `src/api/sismed.py` stub | `get_price_by_expediente()`, `get_price_range()` |
 
 ### Track B: MedGemma Inference (Person 2)
 | Status | Task | Notes |
@@ -28,8 +28,8 @@
 | [ ] | Create `src/inference/medgemma.py` stub | Abstraction layer |
 
 ### Phase 1 Checkpoint ✓
-- [ ] **GO/NO-GO**: CUM API returns drug data
-- [ ] **GO/NO-GO**: SISMED API returns price data
+- [x] **GO/NO-GO**: CUM API returns drug data ✅ Confirmed
+- [x] **GO/NO-GO**: SISMED API returns price data ✅ Confirmed (note: data from 2019)
 - [ ] **GO/NO-GO**: MedGemma extracts readable text from images
 
 ---
@@ -108,7 +108,8 @@
 | Date | Decision | Rationale |
 |------|----------|-----------|
 | Jan 20 | Use HF Inference API as primary | De-risks GPU availability on Kaggle |
-| | | |
+| Jan 20 | SISMED prices are "reference only" | Data is from 2019, show date to users |
+| Jan 20 | Link CUM→SISMED via expedientecum | Shared field enables price lookup for drugs |
 
 ---
 
@@ -116,7 +117,13 @@
 _Update this section as you complete tasks._
 
 ### Week 1
--
+- **Jan 20**: Completed Track A (APIs & Data)
+  - Both CUM and SISMED APIs confirmed working
+  - CUM: ~35k+ drug products, search by active ingredient works well
+  - SISMED: Price data available but from 2019 (not real-time) - will show as "reference prices"
+  - Created `src/api/cum.py` with `search_by_active_ingredient()`, `find_generics()`
+  - Created `src/api/sismed.py` with `get_price_by_expediente()`, `get_price_range()`
+  - Key finding: `expedientecum` field links both datasets
 
 ### Week 2
 -
