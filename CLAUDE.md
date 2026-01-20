@@ -10,15 +10,26 @@ MiSalud Entendida is a healthcare literacy app for the MedGemma Impact Challenge
 
 ## Development Commands
 
-The project is in early development. Current setup:
+This project uses `uv` for dependency management. **Always use `uv`, never `pip`**.
 
 ```bash
-# Python version requirement
-python --version  # Requires 3.11+
+# Install dependencies
+uv sync
 
-# No dependencies configured yet - will need:
-# pip install transformers torch gradio requests pillow
+# Add a new dependency
+uv add <package>
+
+# Add a dev dependency
+uv add --dev <package>
+
+# Run Python with project dependencies
+uv run python <script.py>
+
+# Run a module
+uv run python -m <module>
 ```
+
+Python version: 3.11+ (managed via `.python-version`)
 
 ## Architecture
 
