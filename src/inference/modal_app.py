@@ -1,12 +1,14 @@
 """Modal inference function for MedGemma on A10G GPU."""
 
-from pathlib import Path
-import modal
 import os
+from pathlib import Path
+
+import modal
 
 APP_NAME = "misalud-medgemma"
 APP_PATH = Path("/root/app")
 MODEL_ID = "google/medgemma-1.5-4b-it"
+MAX_NEW_TOKENS = 4096  # Increased to handle thinking mode + complex documents
 
 app = modal.App(APP_NAME)
 
@@ -40,11 +42,13 @@ def extract_from_image(image_bytes: bytes, prompt: str) -> str:
     Returns:
         Model response (expected to be JSON string)
     """
-    import torch
-    from transformers import AutoProcessor, AutoModelForImageTextToText
-    from PIL import Image
     import io
 
+    import torch
+    from PIL import Image
+    from transformers import AutoModelForImageTextToText, AutoProcessor
+
+    from src.inference.utils import extract_json_from_response
     from src.prompts import SYSTEM_INSTRUCTION
 
     # Load model and processor
@@ -85,11 +89,11 @@ def extract_from_image(image_bytes: bytes, prompt: str) -> str:
         return_tensors="pt",
     ).to(model.device, dtype=torch.bfloat16)
 
-    # Generate response (increased tokens to handle thinking mode output)
+    # Generate response (increased tokens to handle thinking mode + complex documents)
     with torch.inference_mode():
         outputs = model.generate(
             **inputs,
-            max_new_tokens=2048,
+            max_new_tokens=MAX_NEW_TOKENS,
             do_sample=False,
         )
 
@@ -97,12 +101,8 @@ def extract_from_image(image_bytes: bytes, prompt: str) -> str:
     input_len = inputs["input_ids"].shape[-1]
     response = processor.decode(outputs[0][input_len:], skip_special_tokens=True)
 
-    # Handle MedGemma 1.5 thinking mode: extract response after <unused95> marker
-    # Thinking format: <unused94>thought\n...thinking...<unused95>...actual response...
-    if "<unused95>" in response:
-        response = response.split("<unused95>", 1)[1].strip()
-
-    return response
+    # Extract JSON, handling thinking mode gracefully
+    return extract_json_from_response(response)
 
 
 @app.local_entrypoint()

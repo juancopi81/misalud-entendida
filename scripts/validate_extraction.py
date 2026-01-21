@@ -104,6 +104,9 @@ def main():
             clinical_record_path = (
                 samples_dir / "clinical_records" / "historia_clinica_sueno_2025.jpeg"
             )
+            lab_results_path = (
+                samples_dir / "lab_results" / "resultados_laboratorio_2025_p1.jpeg"
+            )
 
             results = {}
 
@@ -116,7 +119,16 @@ def main():
                 print(f"WARNING: Prescription sample not found at {prescription_path}")
                 results["prescription"] = False
 
-            # Test clinical record (using lab results prompt as a general extraction test)
+            # Test lab results extraction
+            if lab_results_path.exists():
+                results["lab_results"] = validate_lab_results(
+                    backend, lab_results_path
+                )
+            else:
+                print(f"WARNING: Lab results sample not found at {lab_results_path}")
+                results["lab_results"] = False
+
+            # Test clinical record (using raw extraction - validation only, not MVP)
             if clinical_record_path.exists():
                 print(f"\n{'='*60}")
                 print(
