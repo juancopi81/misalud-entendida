@@ -39,13 +39,13 @@ def extract_json_from_response(response: str) -> str:
     if stripped.startswith("{") and stripped.endswith("}"):
         return stripped
 
-    # Strategy 2: Extract JSON object containing expected keys
+    # Strategy 3: Extract JSON object containing expected keys
     # Find all { } pairs and try to parse them
     brace_depth = 0
     json_start = -1
     json_candidates = []
 
-    for i, char in enumerate(response):
+    for i, char in enumerate(stripped):
         if char == "{":
             if brace_depth == 0:
                 json_start = i
@@ -53,7 +53,7 @@ def extract_json_from_response(response: str) -> str:
         elif char == "}":
             brace_depth -= 1
             if brace_depth == 0 and json_start != -1:
-                candidate = response[json_start : i + 1]
+                candidate = stripped[json_start : i + 1]
                 json_candidates.append(candidate)
                 json_start = -1
 
@@ -67,5 +67,5 @@ def extract_json_from_response(response: str) -> str:
         except json.JSONDecodeError:
             continue
 
-    # Strategy 3: Return original (let caller handle parse failure)
-    return response
+    # Strategy 4: Return cleaned response (let caller handle parse failure)
+    return stripped

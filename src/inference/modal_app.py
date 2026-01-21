@@ -8,7 +8,10 @@ import modal
 APP_NAME = "misalud-medgemma"
 APP_PATH = Path("/root/app")
 MODEL_ID = "google/medgemma-1.5-4b-it"
-MAX_NEW_TOKENS = 4096  # Increased to handle thinking mode + complex documents
+# Task-specific defaults (keep conservative for latency, adjust if truncation appears)
+MAX_NEW_TOKENS_PRESCRIPTION = 2048
+MAX_NEW_TOKENS_LABS = 4096
+MAX_NEW_TOKENS_DEFAULT = 2048
 
 app = modal.App(APP_NAME)
 
@@ -25,84 +28,96 @@ image = (
 )
 
 
-@app.function(
+@app.cls(
     image=image,
     gpu="A10G",
     timeout=300,
     secrets=[modal.Secret.from_name("huggingface")],
+    min_containers=1,
 )
-def extract_from_image(image_bytes: bytes, prompt: str) -> str:
-    """
-    Extract information from a medical document image using MedGemma.
+class MedGemmaModel:
+    """Warm-started MedGemma container to avoid reloading on each call."""
 
-    Args:
-        image_bytes: Raw bytes of the image file
-        prompt: Extraction prompt (Spanish, requesting JSON output)
+    @modal.enter()
+    def setup(self):
+        import torch
+        from transformers import AutoModelForImageTextToText, AutoProcessor
 
-    Returns:
-        Model response (expected to be JSON string)
-    """
-    import io
-
-    import torch
-    from PIL import Image
-    from transformers import AutoModelForImageTextToText, AutoProcessor
-
-    from src.inference.utils import extract_json_from_response
-    from src.prompts import SYSTEM_INSTRUCTION
-
-    # Load model and processor
-    hf_token = os.environ.get("HF_TOKEN")
-
-    processor = AutoProcessor.from_pretrained(MODEL_ID, token=hf_token, use_fast=True)
-    model = AutoModelForImageTextToText.from_pretrained(
-        MODEL_ID,
-        token=hf_token,
-        dtype=torch.bfloat16,  # Use dtype instead of deprecated torch_dtype
-        device_map="auto",
-    )
-
-    # Load image from bytes
-    pil_image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-
-    # Format conversation for MedGemma (following official docs structure)
-    messages = [
-        {
-            "role": "system",
-            "content": [{"type": "text", "text": SYSTEM_INSTRUCTION}],
-        },
-        {
-            "role": "user",
-            "content": [
-                {"type": "text", "text": prompt},
-                {"type": "image", "image": pil_image},
-            ],
-        },
-    ]
-
-    # Process input (cast to bfloat16 per official docs)
-    inputs = processor.apply_chat_template(
-        messages,
-        add_generation_prompt=True,
-        tokenize=True,
-        return_dict=True,
-        return_tensors="pt",
-    ).to(model.device, dtype=torch.bfloat16)
-
-    # Generate response (increased tokens to handle thinking mode + complex documents)
-    with torch.inference_mode():
-        outputs = model.generate(
-            **inputs,
-            max_new_tokens=MAX_NEW_TOKENS,
-            do_sample=False,
+        hf_token = os.environ.get("HF_TOKEN")
+        self.processor = AutoProcessor.from_pretrained(
+            MODEL_ID, token=hf_token, use_fast=True
+        )
+        self.model = AutoModelForImageTextToText.from_pretrained(
+            MODEL_ID,
+            token=hf_token,
+            dtype=torch.bfloat16,  # Use dtype instead of deprecated torch_dtype
+            device_map="auto",
         )
 
-    # Decode response (skip input tokens)
-    input_len = inputs["input_ids"].shape[-1]
-    response = processor.decode(outputs[0][input_len:], skip_special_tokens=True)
+    @modal.method()
+    def extract_from_image(
+        self, image_bytes: bytes, prompt: str, max_new_tokens: int = MAX_NEW_TOKENS_DEFAULT
+    ) -> str:
+        """
+        Extract information from a medical document image using MedGemma.
 
-    # Extract JSON, handling thinking mode gracefully
-    return extract_json_from_response(response)
+        Args:
+            image_bytes: Raw bytes of the image file
+            prompt: Extraction prompt (Spanish, requesting JSON output)
+            max_new_tokens: Generation limit (task-specific)
+
+        Returns:
+            Model response (expected to be JSON string)
+        """
+        import io
+
+        import torch
+        from PIL import Image
+
+        from src.inference.utils import extract_json_from_response
+        from src.prompts import SYSTEM_INSTRUCTION
+
+        # Load image from bytes
+        pil_image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+
+        # Format conversation for MedGemma (following official docs structure)
+        messages = [
+            {
+                "role": "system",
+                "content": [{"type": "text", "text": SYSTEM_INSTRUCTION}],
+            },
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt},
+                    {"type": "image", "image": pil_image},
+                ],
+            },
+        ]
+
+        # Process input (cast to bfloat16 per official docs)
+        inputs = self.processor.apply_chat_template(
+            messages,
+            add_generation_prompt=True,
+            tokenize=True,
+            return_dict=True,
+            return_tensors="pt",
+        ).to(self.model.device, dtype=torch.bfloat16)
+
+        # Generate response
+        with torch.inference_mode():
+            outputs = self.model.generate(
+                **inputs,
+                max_new_tokens=max_new_tokens,
+                do_sample=False,
+            )
+
+        # Decode response (skip input tokens)
+        input_len = inputs["input_ids"].shape[-1]
+        response = self.processor.decode(outputs[0][input_len:], skip_special_tokens=True)
+
+        # Extract JSON, handling thinking mode gracefully
+        return extract_json_from_response(response)
 
 
 @app.local_entrypoint()
@@ -121,7 +136,12 @@ def main():
     image_bytes = sample_path.read_bytes()
 
     print("Calling Modal function (this may take a while on first run due to model download)...")
-    result = extract_from_image.remote(image_bytes, PRESCRIPTION_PROMPT)
+    model = MedGemmaModel()
+    result = model.extract_from_image.remote(
+        image_bytes,
+        PRESCRIPTION_PROMPT,
+        max_new_tokens=MAX_NEW_TOKENS_PRESCRIPTION,
+    )
 
     print("\n--- Extraction Result ---")
     print(result)

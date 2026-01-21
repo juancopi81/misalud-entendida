@@ -147,6 +147,11 @@ _Update this section as you complete tasks._
   - Updated Modal image to include src/ directory for imports
   - Backward compatibility maintained via re-exports in `src/inference/__init__.py`
   - All smoke tests passing
+- **Jan 21**: Inference stability + latency improvements
+  - Modal warm-starts via `@app.cls` with `min_containers=1`
+  - Task-specific `max_new_tokens` defaults for faster extraction
+  - JSON extraction cleanup + schema checks for parse_success
+  - SISMED `min()` guard for empty/zero price lists
 
 ### Week 3
 -

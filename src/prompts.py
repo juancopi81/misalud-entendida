@@ -32,7 +32,7 @@ Expected output: JSON with list of medications containing:
 
 LAB_RESULTS_PROMPT = """Analiza esta imagen de resultados de laboratorio y extrae cada prueba.
 Para cada prueba, incluye: nombre_prueba, valor, unidad, rango_referencia, estado (normal/alto/bajo).
-Responde SOLO con JSON válido en el siguiente formato:
+No incluyas razonamiento, pasos, ni explicaciones. Responde SOLO con JSON válido, sin markdown, en el siguiente formato:
 {"resultados": [{"nombre_prueba": "...", "valor": "...", "unidad": "...", "rango_referencia": "...", "estado": "..."}]}"""
 """Prompt for extracting test results from lab result images.
 

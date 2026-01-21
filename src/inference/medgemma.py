@@ -23,7 +23,10 @@ from src.prompts import (
 # --- Constants ---
 
 MODEL_ID = "google/medgemma-1.5-4b-it"
-MAX_NEW_TOKENS = 4096  # Increased to handle thinking mode + complex documents
+# Task-specific defaults (keep conservative for latency, adjust if truncation appears)
+MAX_NEW_TOKENS_PRESCRIPTION = 2048
+MAX_NEW_TOKENS_LABS = 4096
+MAX_NEW_TOKENS_DEFAULT = 2048
 
 
 # --- Backend Abstraction ---
@@ -33,34 +36,51 @@ class MedGemmaBackend(ABC):
     """Abstract base class for MedGemma inference backends."""
 
     @abstractmethod
-    def extract_raw(self, image_path: str | Path, prompt: str) -> str:
+    def extract_raw(
+        self,
+        image_path: str | Path,
+        prompt: str,
+        max_new_tokens: int = MAX_NEW_TOKENS_DEFAULT,
+    ) -> str:
         """Run raw extraction and return model response as string."""
         pass
 
     def extract_prescription(self, image_path: str | Path) -> PrescriptionExtraction:
         """Extract prescription data from an image."""
-        raw = self.extract_raw(image_path, PRESCRIPTION_PROMPT)
+        raw = self.extract_raw(
+            image_path, PRESCRIPTION_PROMPT, max_new_tokens=MAX_NEW_TOKENS_PRESCRIPTION
+        )
         return PrescriptionExtraction.from_json(raw)
 
     def extract_lab_results(self, image_path: str | Path) -> LabResultExtraction:
         """Extract lab results data from an image."""
-        raw = self.extract_raw(image_path, LAB_RESULTS_PROMPT)
+        raw = self.extract_raw(
+            image_path, LAB_RESULTS_PROMPT, max_new_tokens=MAX_NEW_TOKENS_LABS
+        )
         return LabResultExtraction.from_json(raw)
 
 
 class ModalBackend(MedGemmaBackend):
     """Backend that calls Modal function for remote GPU inference."""
 
-    def extract_raw(self, image_path: str | Path, prompt: str) -> str:
+    def extract_raw(
+        self,
+        image_path: str | Path,
+        prompt: str,
+        max_new_tokens: int = MAX_NEW_TOKENS_DEFAULT,
+    ) -> str:
         """Call Modal function to extract from image."""
-        from .modal_app import extract_from_image
+        from .modal_app import MedGemmaModel
 
         image_path = Path(image_path)
         if not image_path.exists():
             raise FileNotFoundError(f"Image not found: {image_path}")
 
         image_bytes = image_path.read_bytes()
-        return extract_from_image.remote(image_bytes, prompt)
+        model = MedGemmaModel()
+        return model.extract_from_image.remote(
+            image_bytes, prompt, max_new_tokens=max_new_tokens
+        )
 
 
 class TransformersBackend(MedGemmaBackend):
@@ -101,7 +121,12 @@ class TransformersBackend(MedGemmaBackend):
             device_map="auto",
         )
 
-    def extract_raw(self, image_path: str | Path, prompt: str) -> str:
+    def extract_raw(
+        self,
+        image_path: str | Path,
+        prompt: str,
+        max_new_tokens: int = MAX_NEW_TOKENS_DEFAULT,
+    ) -> str:
         """Run local inference to extract from image."""
         import torch
         from PIL import Image
@@ -138,11 +163,11 @@ class TransformersBackend(MedGemmaBackend):
             return_tensors="pt",
         ).to(self._model.device, dtype=torch.bfloat16)
 
-        # Generate response (increased tokens to handle thinking mode + complex documents)
+        # Generate response
         with torch.inference_mode():
             outputs = self._model.generate(
                 **inputs,
-                max_new_tokens=MAX_NEW_TOKENS,
+                max_new_tokens=max_new_tokens,
                 do_sample=False,
             )
 
