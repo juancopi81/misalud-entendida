@@ -8,9 +8,6 @@ APP_NAME = "misalud-medgemma"
 APP_PATH = Path("/root/app")
 MODEL_ID = "google/medgemma-1.5-4b-it"
 
-# System instruction for medical document extraction
-SYSTEM_INSTRUCTION = "Eres un asistente médico experto en interpretar documentos médicos colombianos como recetas, resultados de laboratorio e historias clínicas."
-
 app = modal.App(APP_NAME)
 
 # Build image with uv for dependency management
@@ -20,6 +17,7 @@ image = (
     .workdir(APP_PATH)
     .add_local_file("pyproject.toml", str(APP_PATH / "pyproject.toml"), copy=True)
     .add_local_file("uv.lock", str(APP_PATH / "uv.lock"), copy=True)
+    .add_local_dir("src", str(APP_PATH / "src"), copy=True)
     .env({"UV_PROJECT_ENVIRONMENT": "/usr/local"})
     .run_commands("uv sync --frozen --compile-bytecode --python-preference=only-system")
 )
@@ -46,6 +44,8 @@ def extract_from_image(image_bytes: bytes, prompt: str) -> str:
     from transformers import AutoProcessor, AutoModelForImageTextToText
     from PIL import Image
     import io
+
+    from src.prompts import SYSTEM_INSTRUCTION
 
     # Load model and processor
     hf_token = os.environ.get("HF_TOKEN")
@@ -108,11 +108,7 @@ def extract_from_image(image_bytes: bytes, prompt: str) -> str:
 @app.local_entrypoint()
 def main():
     """Test the extraction function with a sample prescription image."""
-    # Default test prompt for prescription extraction
-    prompt = """Analiza esta imagen de una receta médica colombiana y extrae la información de cada medicamento.
-Para cada medicamento, incluye: nombre_medicamento, dosis, frecuencia, duracion, instrucciones.
-Responde SOLO con JSON válido en el siguiente formato:
-{"medicamentos": [{"nombre_medicamento": "...", "dosis": "...", "frecuencia": "...", "duracion": "...", "instrucciones": "..."}]}"""
+    from src.prompts import PRESCRIPTION_PROMPT
 
     # Read sample image
     sample_path = Path(__file__).parent.parent.parent / "samples" / "prescriptions" / "receta_dermatologia_2025.jpeg"
@@ -125,7 +121,7 @@ Responde SOLO con JSON válido en el siguiente formato:
     image_bytes = sample_path.read_bytes()
 
     print("Calling Modal function (this may take a while on first run due to model download)...")
-    result = extract_from_image.remote(image_bytes, prompt)
+    result = extract_from_image.remote(image_bytes, PRESCRIPTION_PROMPT)
 
     print("\n--- Extraction Result ---")
     print(result)

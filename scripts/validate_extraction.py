@@ -22,6 +22,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.inference.medgemma import get_backend
 from src.inference.modal_app import app as modal_app
+from src.prompts import CLINICAL_RECORD_PROMPT
 
 
 def validate_prescription(backend, image_path: Path) -> bool:
@@ -124,12 +125,9 @@ def main():
                 print("=" * 60)
 
                 # Use raw extraction with a general prompt for clinical records
-
                 raw_result = backend.extract_raw(
                     clinical_record_path,
-                    """Analiza esta imagen de un documento médico colombiano y extrae la información relevante.
-        Incluye: diagnostico, sintomas, tratamiento, recomendaciones.
-        Responde SOLO con JSON válido.""",
+                    CLINICAL_RECORD_PROMPT,
                 )
                 print("\n--- Raw Response ---")
                 print(raw_result[:800] + "..." if len(raw_result) > 800 else raw_result)

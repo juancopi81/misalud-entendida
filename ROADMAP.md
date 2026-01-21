@@ -114,6 +114,7 @@
 | Jan 20 | Use Modal A10G for inference | Pay-per-use (~$0.36/hr), 24GB VRAM, local dev + remote inference |
 | Jan 20 | Backend abstraction layer | Supports Modal (dev) and Transformers (Kaggle) backends |
 | Jan 20 | Use MedGemma 1.5 4B IT | `google/medgemma-1.5-4b-it` - newer version with thinking support |
+| Jan 21 | Centralize prompts & models | Single source of truth: `src/prompts.py`, `src/models.py` |
 
 ---
 
@@ -139,7 +140,13 @@ _Update this section as you complete tasks._
   - Fixed: thinking mode output parsing (`<unused95>` marker), dtype deprecation
 
 ### Week 2
--
+- **Jan 21**: Code refactoring - centralized prompts & models
+  - Created `src/prompts.py` - single source for SYSTEM_INSTRUCTION, PRESCRIPTION_PROMPT, LAB_RESULTS_PROMPT
+  - Created `src/models.py` - all dataclasses (extraction models + API records)
+  - Removed duplication: SYSTEM_INSTRUCTION was in medgemma.py and modal_app.py
+  - Updated Modal image to include src/ directory for imports
+  - Backward compatibility maintained via re-exports in `src/inference/__init__.py`
+  - All smoke tests passing
 
 ### Week 3
 -

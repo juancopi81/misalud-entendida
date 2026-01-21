@@ -9,8 +9,12 @@ Anonymized Colombian medical documents for testing MedGemma extraction pipelines
 ### prescriptions/
 - `receta_dermatologia_2025.jpeg` - Dermatology prescription with 2 medications
 
+### lab_results/
+- `resultados_laboratorio_2025_p1.jpeg` - Chemistry (glicemia) and complete blood count (hemograma)
+- `resultados_laboratorio_2025_p2.jpeg` - Hormone panel (TSH)
+
 ### clinical_records/
-- `historia_clinica_sueno_2025.jpeg` - Sleep clinic record with diagnosis and treatment plan
+- `historia_clinica_sueno_2025.jpeg` - Sleep clinic record with diagnosis and treatment plan (validation only, not MVP)
 
 ## Usage
 

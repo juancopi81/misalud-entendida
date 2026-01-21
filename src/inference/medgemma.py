@@ -6,128 +6,22 @@ Supports multiple backends:
 """
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal
-import json
 
-
-# --- Extraction Result Dataclasses ---
-
-
-@dataclass
-class MedicationItem:
-    """Single medication extracted from a prescription."""
-
-    nombre_medicamento: str = ""
-    dosis: str = ""
-    frecuencia: str = ""
-    duracion: str = ""
-    instrucciones: str = ""
-
-
-@dataclass
-class PrescriptionExtraction:
-    """Extracted data from a prescription image."""
-
-    medicamentos: list[MedicationItem] = field(default_factory=list)
-    raw_response: str = ""
-    parse_success: bool = False
-
-    @classmethod
-    def from_json(cls, json_str: str) -> "PrescriptionExtraction":
-        """Parse JSON response into PrescriptionExtraction."""
-        try:
-            # Try to extract JSON from response (model may include extra text)
-            json_start = json_str.find("{")
-            json_end = json_str.rfind("}") + 1
-            if json_start >= 0 and json_end > json_start:
-                json_str_clean = json_str[json_start:json_end]
-                data = json.loads(json_str_clean)
-
-                medicamentos = []
-                for med in data.get("medicamentos", []):
-                    medicamentos.append(
-                        MedicationItem(
-                            nombre_medicamento=med.get("nombre_medicamento", ""),
-                            dosis=med.get("dosis", ""),
-                            frecuencia=med.get("frecuencia", ""),
-                            duracion=med.get("duracion", ""),
-                            instrucciones=med.get("instrucciones", ""),
-                        )
-                    )
-                return cls(medicamentos=medicamentos, raw_response=json_str, parse_success=True)
-        except (json.JSONDecodeError, KeyError, TypeError):
-            pass
-
-        return cls(raw_response=json_str, parse_success=False)
-
-
-@dataclass
-class LabResultItem:
-    """Single lab result value."""
-
-    nombre_prueba: str = ""
-    valor: str = ""
-    unidad: str = ""
-    rango_referencia: str = ""
-    estado: str = ""  # "normal", "alto", "bajo"
-
-
-@dataclass
-class LabResultExtraction:
-    """Extracted data from a lab result image."""
-
-    resultados: list[LabResultItem] = field(default_factory=list)
-    raw_response: str = ""
-    parse_success: bool = False
-
-    @classmethod
-    def from_json(cls, json_str: str) -> "LabResultExtraction":
-        """Parse JSON response into LabResultExtraction."""
-        try:
-            json_start = json_str.find("{")
-            json_end = json_str.rfind("}") + 1
-            if json_start >= 0 and json_end > json_start:
-                json_str_clean = json_str[json_start:json_end]
-                data = json.loads(json_str_clean)
-
-                resultados = []
-                for res in data.get("resultados", []):
-                    resultados.append(
-                        LabResultItem(
-                            nombre_prueba=res.get("nombre_prueba", ""),
-                            valor=res.get("valor", ""),
-                            unidad=res.get("unidad", ""),
-                            rango_referencia=res.get("rango_referencia", ""),
-                            estado=res.get("estado", ""),
-                        )
-                    )
-                return cls(resultados=resultados, raw_response=json_str, parse_success=True)
-        except (json.JSONDecodeError, KeyError, TypeError):
-            pass
-
-        return cls(raw_response=json_str, parse_success=False)
-
+from src.models import (
+    LabResultExtraction,
+    PrescriptionExtraction,
+)
+from src.prompts import (
+    LAB_RESULTS_PROMPT,
+    PRESCRIPTION_PROMPT,
+    SYSTEM_INSTRUCTION,
+)
 
 # --- Constants ---
 
 MODEL_ID = "google/medgemma-1.5-4b-it"
-
-# System instruction for medical document extraction (Spanish)
-SYSTEM_INSTRUCTION = "Eres un asistente médico experto en interpretar documentos médicos colombianos como recetas, resultados de laboratorio e historias clínicas."
-
-# --- Prompts ---
-
-PRESCRIPTION_PROMPT = """Analiza esta imagen de una receta médica colombiana y extrae la información de cada medicamento.
-Para cada medicamento, incluye: nombre_medicamento, dosis, frecuencia, duracion, instrucciones.
-Responde SOLO con JSON válido en el siguiente formato:
-{"medicamentos": [{"nombre_medicamento": "...", "dosis": "...", "frecuencia": "...", "duracion": "...", "instrucciones": "..."}]}"""
-
-LAB_RESULTS_PROMPT = """Analiza esta imagen de resultados de laboratorio y extrae cada prueba.
-Para cada prueba, incluye: nombre_prueba, valor, unidad, rango_referencia, estado (normal/alto/bajo).
-Responde SOLO con JSON válido en el siguiente formato:
-{"resultados": [{"nombre_prueba": "...", "valor": "...", "unidad": "...", "rango_referencia": "...", "estado": "..."}]}"""
 
 
 # --- Backend Abstraction ---
@@ -185,14 +79,19 @@ class TransformersBackend(MedGemmaBackend):
             return
 
         import os
+
         import torch
-        from transformers import AutoProcessor, AutoModelForImageTextToText
+        from transformers import AutoModelForImageTextToText, AutoProcessor
 
         hf_token = os.environ.get("HF_TOKEN")
         if not hf_token:
-            raise ValueError("HF_TOKEN environment variable required for MedGemma access")
+            raise ValueError(
+                "HF_TOKEN environment variable required for MedGemma access"
+            )
 
-        self._processor = AutoProcessor.from_pretrained(self.model_id, token=hf_token, use_fast=True)
+        self._processor = AutoProcessor.from_pretrained(
+            self.model_id, token=hf_token, use_fast=True
+        )
         self._model = AutoModelForImageTextToText.from_pretrained(
             self.model_id,
             token=hf_token,
@@ -246,7 +145,9 @@ class TransformersBackend(MedGemmaBackend):
             )
 
         input_len = inputs["input_ids"].shape[-1]
-        response = self._processor.decode(outputs[0][input_len:], skip_special_tokens=True)
+        response = self._processor.decode(
+            outputs[0][input_len:], skip_special_tokens=True
+        )
 
         # Handle MedGemma 1.5 thinking mode: extract response after <unused95> marker
         # Thinking format: <unused94>thought\n...thinking...<unused95>...actual response...

@@ -39,30 +39,13 @@ Rate Limits:
 - Default limit: 1000 records per request
 """
 
-from dataclasses import dataclass
 from typing import Optional
 import requests
 
+from src.models import PriceRecord
+
 BASE_URL = "https://www.datos.gov.co/resource/3he6-m866.json"
 DEFAULT_LIMIT = 50
-
-
-@dataclass
-class PriceRecord:
-    """SISMED price record for a medication."""
-
-    expedientecum: str
-    descripcioncomercial: str
-    formafarmaceutica: str
-    atc: str
-    descripcion_atc: str
-    precio_minimo: float
-    precio_maximo: float
-    precio_promedio: float
-    unidades: float
-    fechacorte: str  # Report date
-    tipo_reporte: str  # "VENTA" or "COMPRA"
-    tipo_entidad: str  # "LABORATORIO", "MAYORISTA", etc.
 
 
 def get_price_by_expediente(
