@@ -43,29 +43,13 @@ Data Freshness:
 - Contains ~35,000+ products
 """
 
-from dataclasses import dataclass
 from typing import Optional
 import requests
 
+from src.models import CUMRecord
+
 BASE_URL = "https://www.datos.gov.co/resource/i7cb-raxc.json"
 DEFAULT_LIMIT = 50
-
-
-@dataclass
-class CUMRecord:
-    """Simplified CUM drug record for our use case."""
-
-    expedientecum: str
-    producto: str  # Brand name
-    principioactivo: str  # Active ingredient
-    concentracion_valor: str  # e.g., "850"
-    unidadmedida: str  # e.g., "mg"
-    formafarmaceutica: str  # e.g., "TABLETA"
-    titular: str  # Manufacturer/holder
-    registrosanitario: str  # INVIMA number
-    estadoregistro: str  # "Vigente" = active
-    cantidadcum: str  # Quantity per package
-    descripcioncomercial: str  # Package description
 
 
 def search_by_active_ingredient(
