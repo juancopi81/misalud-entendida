@@ -172,7 +172,8 @@ def get_price_range(prices: list[PriceRecord]) -> Optional[dict]:
     if not prices:
         return None
 
-    all_min = min(p.precio_minimo for p in prices if p.precio_minimo > 0)
+    valid_mins = [p.precio_minimo for p in prices if p.precio_minimo > 0]
+    all_min = min(valid_mins) if valid_mins else 0.0
     all_max = max(p.precio_maximo for p in prices)
     all_avg = sum(p.precio_promedio for p in prices) / len(prices)
 

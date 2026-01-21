@@ -42,25 +42,35 @@ class PrescriptionExtraction:
     def from_json(cls, json_str: str) -> "PrescriptionExtraction":
         """Parse JSON response into PrescriptionExtraction."""
         try:
-            # Try to extract JSON from response (model may include extra text)
-            json_start = json_str.find("{")
-            json_end = json_str.rfind("}") + 1
-            if json_start >= 0 and json_end > json_start:
-                json_str_clean = json_str[json_start:json_end]
-                data = json.loads(json_str_clean)
+            # Try direct parse first, then fallback to slicing
+            try:
+                data = json.loads(json_str)
+            except json.JSONDecodeError:
+                json_start = json_str.find("{")
+                json_end = json_str.rfind("}") + 1
+                if json_start >= 0 and json_end > json_start:
+                    json_str_clean = json_str[json_start:json_end]
+                    data = json.loads(json_str_clean)
+                else:
+                    data = {}
 
-                medicamentos = []
-                for med in data.get("medicamentos", []):
-                    medicamentos.append(
-                        MedicationItem(
-                            nombre_medicamento=med.get("nombre_medicamento", ""),
-                            dosis=med.get("dosis", ""),
-                            frecuencia=med.get("frecuencia", ""),
-                            duracion=med.get("duracion", ""),
-                            instrucciones=med.get("instrucciones", ""),
-                        )
+            if "medicamentos" not in data:
+                return cls(raw_response=json_str, parse_success=False)
+
+            medicamentos = []
+            for med in data.get("medicamentos", []):
+                medicamentos.append(
+                    MedicationItem(
+                        nombre_medicamento=med.get("nombre_medicamento", ""),
+                        dosis=med.get("dosis", ""),
+                        frecuencia=med.get("frecuencia", ""),
+                        duracion=med.get("duracion", ""),
+                        instrucciones=med.get("instrucciones", ""),
                     )
-                return cls(medicamentos=medicamentos, raw_response=json_str, parse_success=True)
+                )
+            return cls(
+                medicamentos=medicamentos, raw_response=json_str, parse_success=True
+            )
         except (json.JSONDecodeError, KeyError, TypeError):
             pass
 
@@ -90,24 +100,32 @@ class LabResultExtraction:
     def from_json(cls, json_str: str) -> "LabResultExtraction":
         """Parse JSON response into LabResultExtraction."""
         try:
-            json_start = json_str.find("{")
-            json_end = json_str.rfind("}") + 1
-            if json_start >= 0 and json_end > json_start:
-                json_str_clean = json_str[json_start:json_end]
-                data = json.loads(json_str_clean)
+            try:
+                data = json.loads(json_str)
+            except json.JSONDecodeError:
+                json_start = json_str.find("{")
+                json_end = json_str.rfind("}") + 1
+                if json_start >= 0 and json_end > json_start:
+                    json_str_clean = json_str[json_start:json_end]
+                    data = json.loads(json_str_clean)
+                else:
+                    data = {}
 
-                resultados = []
-                for res in data.get("resultados", []):
-                    resultados.append(
-                        LabResultItem(
-                            nombre_prueba=res.get("nombre_prueba", ""),
-                            valor=res.get("valor", ""),
-                            unidad=res.get("unidad", ""),
-                            rango_referencia=res.get("rango_referencia", ""),
-                            estado=res.get("estado", ""),
-                        )
+            if "resultados" not in data:
+                return cls(raw_response=json_str, parse_success=False)
+
+            resultados = []
+            for res in data.get("resultados", []):
+                resultados.append(
+                    LabResultItem(
+                        nombre_prueba=res.get("nombre_prueba", ""),
+                        valor=res.get("valor", ""),
+                        unidad=res.get("unidad", ""),
+                        rango_referencia=res.get("rango_referencia", ""),
+                        estado=res.get("estado", ""),
                     )
-                return cls(resultados=resultados, raw_response=json_str, parse_success=True)
+                )
+            return cls(resultados=resultados, raw_response=json_str, parse_success=True)
         except (json.JSONDecodeError, KeyError, TypeError):
             pass
 
