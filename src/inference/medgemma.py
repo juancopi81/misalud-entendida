@@ -9,6 +9,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Literal
 
+from src.inference.utils import extract_json_from_response
 from src.models import (
     LabResultExtraction,
     PrescriptionExtraction,
@@ -22,6 +23,7 @@ from src.prompts import (
 # --- Constants ---
 
 MODEL_ID = "google/medgemma-1.5-4b-it"
+MAX_NEW_TOKENS = 4096  # Increased to handle thinking mode + complex documents
 
 
 # --- Backend Abstraction ---
@@ -136,11 +138,11 @@ class TransformersBackend(MedGemmaBackend):
             return_tensors="pt",
         ).to(self._model.device, dtype=torch.bfloat16)
 
-        # Generate response (increased tokens to handle thinking mode output)
+        # Generate response (increased tokens to handle thinking mode + complex documents)
         with torch.inference_mode():
             outputs = self._model.generate(
                 **inputs,
-                max_new_tokens=2048,
+                max_new_tokens=MAX_NEW_TOKENS,
                 do_sample=False,
             )
 
@@ -149,12 +151,8 @@ class TransformersBackend(MedGemmaBackend):
             outputs[0][input_len:], skip_special_tokens=True
         )
 
-        # Handle MedGemma 1.5 thinking mode: extract response after <unused95> marker
-        # Thinking format: <unused94>thought\n...thinking...<unused95>...actual response...
-        if "<unused95>" in response:
-            response = response.split("<unused95>", 1)[1].strip()
-
-        return response
+        # Extract JSON, handling thinking mode gracefully
+        return extract_json_from_response(response)
 
 
 # --- Factory ---
