@@ -115,6 +115,7 @@
 | Jan 20 | Backend abstraction layer | Supports Modal (dev) and Transformers (Kaggle) backends |
 | Jan 20 | Use MedGemma 1.5 4B IT | `google/medgemma-1.5-4b-it` - newer version with thinking support |
 | Jan 21 | Centralize prompts & models | Single source of truth: `src/prompts.py`, `src/models.py` |
+| Jan 22 | Consolidate inference constants | Single source: `src/inference/constants.py` (MODEL_ID, token limits) |
 
 ---
 
@@ -152,6 +153,12 @@ _Update this section as you complete tasks._
   - Task-specific `max_new_tokens` defaults for faster extraction
   - JSON extraction cleanup + schema checks for parse_success
   - SISMED `min()` guard for empty/zero price lists
+- **Jan 22**: Pre-Phase 2 cleanup
+  - Created `src/inference/constants.py` - single source for MODEL_ID and token limits
+  - Removed duplicated constants from `modal_app.py` and `medgemma.py`
+  - Removed unused re-exports from `src/inference/__init__.py`
+  - Added `src/logger.py` - simple logging config with `LOG_LEVEL` env var support
+  - Added logging to `medgemma.py`, `cum.py`, `sismed.py` for pipeline debugging
 
 ### Week 3
 -

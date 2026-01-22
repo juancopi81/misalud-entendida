@@ -5,13 +5,14 @@ from pathlib import Path
 
 import modal
 
+from src.inference.constants import (
+    MAX_NEW_TOKENS_DEFAULT,
+    MAX_NEW_TOKENS_PRESCRIPTION,
+    MODEL_ID,
+)
+
 APP_NAME = "misalud-medgemma"
 APP_PATH = Path("/root/app")
-MODEL_ID = "google/medgemma-1.5-4b-it"
-# Task-specific defaults (keep conservative for latency, adjust if truncation appears)
-MAX_NEW_TOKENS_PRESCRIPTION = 2048
-MAX_NEW_TOKENS_LABS = 4096
-MAX_NEW_TOKENS_DEFAULT = 2048
 
 app = modal.App(APP_NAME)
 

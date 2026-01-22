@@ -44,9 +44,13 @@ Data Freshness:
 """
 
 from typing import Optional
+
 import requests
 
+from src.logger import get_logger
 from src.models import CUMRecord
+
+logger = get_logger(__name__)
 
 BASE_URL = "https://www.datos.gov.co/resource/i7cb-raxc.json"
 DEFAULT_LIMIT = 50
@@ -80,11 +84,13 @@ def search_by_active_ingredient(
     if only_active:
         params["estadoregistro"] = "Vigente"
 
+    logger.debug("CUM API: searching by ingredient=%s", ingredient.upper())
     response = requests.get(BASE_URL, params=params, timeout=30)
     response.raise_for_status()
 
+    data = response.json()
     records = []
-    for item in response.json():
+    for item in data:
         records.append(
             CUMRecord(
                 expedientecum=item.get("expedientecum", ""),
@@ -100,6 +106,7 @@ def search_by_active_ingredient(
                 descripcioncomercial=item.get("descripcioncomercial", ""),
             )
         )
+    logger.info("CUM API: found %d records for ingredient=%s", len(records), ingredient.upper())
     return records
 
 
@@ -129,11 +136,13 @@ def search_by_product_name(
         "$limit": limit,
     }
 
+    logger.debug("CUM API: searching by product_name=%s", product_name)
     response = requests.get(BASE_URL, params=params, timeout=30)
     response.raise_for_status()
 
+    data = response.json()
     records = []
-    for item in response.json():
+    for item in data:
         records.append(
             CUMRecord(
                 expedientecum=item.get("expedientecum", ""),
@@ -149,6 +158,7 @@ def search_by_product_name(
                 descripcioncomercial=item.get("descripcioncomercial", ""),
             )
         )
+    logger.info("CUM API: found %d records for product_name=%s", len(records), product_name)
     return records
 
 
@@ -166,6 +176,7 @@ def find_generics(ingredient: str, concentration: Optional[str] = None) -> list[
     Returns:
         List of CUMRecord objects that could be generic alternatives
     """
+    logger.debug("Finding generics for ingredient=%s, concentration=%s", ingredient, concentration)
     results = search_by_active_ingredient(ingredient, limit=100)
 
     if concentration:
@@ -179,6 +190,8 @@ def find_generics(ingredient: str, concentration: Optional[str] = None) -> list[
         )
     )
 
+    num_generics = sum(1 for r in results if "GENERICO" in r.descripcioncomercial.upper())
+    logger.info("Found %d alternatives (%d generics) for %s", len(results), num_generics, ingredient)
     return results
 
 

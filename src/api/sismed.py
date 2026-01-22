@@ -40,9 +40,13 @@ Rate Limits:
 """
 
 from typing import Optional
+
 import requests
 
+from src.logger import get_logger
 from src.models import PriceRecord
+
+logger = get_logger(__name__)
 
 BASE_URL = "https://www.datos.gov.co/resource/3he6-m866.json"
 DEFAULT_LIMIT = 50
@@ -75,11 +79,13 @@ def get_price_by_expediente(
         "$order": "fechacorte DESC",  # Most recent first
     }
 
+    logger.debug("SISMED API: searching by expedientecum=%s", expedientecum)
     response = requests.get(BASE_URL, params=params, timeout=30)
     response.raise_for_status()
 
+    data = response.json()
     records = []
-    for item in response.json():
+    for item in data:
         # Skip records with zero prices (no actual transactions)
         precio_promedio = float(item.get("valorpromedio", 0) or 0)
         if precio_promedio == 0:
@@ -101,6 +107,7 @@ def get_price_by_expediente(
                 tipo_entidad=item.get("tipoentidaddesc", ""),
             )
         )
+    logger.info("SISMED API: found %d price records for expedientecum=%s", len(records), expedientecum)
     return records
 
 
@@ -126,11 +133,13 @@ def search_prices_by_atc(
         "$order": "fechacorte DESC",
     }
 
+    logger.debug("SISMED API: searching by atc=%s", atc_code.upper())
     response = requests.get(BASE_URL, params=params, timeout=30)
     response.raise_for_status()
 
+    data = response.json()
     records = []
-    for item in response.json():
+    for item in data:
         precio_promedio = float(item.get("valorpromedio", 0) or 0)
         if precio_promedio == 0:
             continue
@@ -151,6 +160,7 @@ def search_prices_by_atc(
                 tipo_entidad=item.get("tipoentidaddesc", ""),
             )
         )
+    logger.info("SISMED API: found %d price records for atc=%s", len(records), atc_code.upper())
     return records
 
 

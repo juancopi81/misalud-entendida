@@ -9,6 +9,14 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Literal
 
+from src.logger import get_logger
+
+from src.inference.constants import (
+    MAX_NEW_TOKENS_DEFAULT,
+    MAX_NEW_TOKENS_LABS,
+    MAX_NEW_TOKENS_PRESCRIPTION,
+    MODEL_ID,
+)
 from src.inference.utils import extract_json_from_response
 from src.models import (
     LabResultExtraction,
@@ -20,14 +28,7 @@ from src.prompts import (
     SYSTEM_INSTRUCTION,
 )
 
-# --- Constants ---
-
-MODEL_ID = "google/medgemma-1.5-4b-it"
-# Task-specific defaults (keep conservative for latency, adjust if truncation appears)
-MAX_NEW_TOKENS_PRESCRIPTION = 2048
-MAX_NEW_TOKENS_LABS = 4096
-MAX_NEW_TOKENS_DEFAULT = 2048
-
+logger = get_logger(__name__)
 
 # --- Backend Abstraction ---
 
@@ -47,17 +48,33 @@ class MedGemmaBackend(ABC):
 
     def extract_prescription(self, image_path: str | Path) -> PrescriptionExtraction:
         """Extract prescription data from an image."""
+        logger.info("Extracting prescription from %s", image_path)
         raw = self.extract_raw(
             image_path, PRESCRIPTION_PROMPT, max_new_tokens=MAX_NEW_TOKENS_PRESCRIPTION
         )
-        return PrescriptionExtraction.from_json(raw)
+        logger.debug("Raw response (first 200 chars): %s", raw[:200] if raw else "empty")
+        result = PrescriptionExtraction.from_json(raw)
+        logger.info(
+            "Prescription extraction complete: %d medications, parse_success=%s",
+            len(result.medicamentos),
+            result.parse_success,
+        )
+        return result
 
     def extract_lab_results(self, image_path: str | Path) -> LabResultExtraction:
         """Extract lab results data from an image."""
+        logger.info("Extracting lab results from %s", image_path)
         raw = self.extract_raw(
             image_path, LAB_RESULTS_PROMPT, max_new_tokens=MAX_NEW_TOKENS_LABS
         )
-        return LabResultExtraction.from_json(raw)
+        logger.debug("Raw response (first 200 chars): %s", raw[:200] if raw else "empty")
+        result = LabResultExtraction.from_json(raw)
+        logger.info(
+            "Lab results extraction complete: %d results, parse_success=%s",
+            len(result.resultados),
+            result.parse_success,
+        )
+        return result
 
 
 class ModalBackend(MedGemmaBackend):
@@ -76,11 +93,14 @@ class ModalBackend(MedGemmaBackend):
         if not image_path.exists():
             raise FileNotFoundError(f"Image not found: {image_path}")
 
+        logger.debug("Calling Modal remote function (max_new_tokens=%d)", max_new_tokens)
         image_bytes = image_path.read_bytes()
         model = MedGemmaModel()
-        return model.extract_from_image.remote(
+        result = model.extract_from_image.remote(
             image_bytes, prompt, max_new_tokens=max_new_tokens
         )
+        logger.debug("Modal call complete, response length: %d", len(result) if result else 0)
+        return result
 
 
 class TransformersBackend(MedGemmaBackend):
@@ -111,6 +131,7 @@ class TransformersBackend(MedGemmaBackend):
                 "HF_TOKEN environment variable required for MedGemma access"
             )
 
+        logger.info("Loading MedGemma model: %s", self.model_id)
         self._processor = AutoProcessor.from_pretrained(
             self.model_id, token=hf_token, use_fast=True
         )
@@ -120,6 +141,7 @@ class TransformersBackend(MedGemmaBackend):
             dtype=torch.bfloat16,  # Use dtype instead of deprecated torch_dtype
             device_map="auto",
         )
+        logger.info("Model loaded successfully")
 
     def extract_raw(
         self,
