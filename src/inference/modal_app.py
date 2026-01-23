@@ -10,11 +10,13 @@ from src.inference.constants import (
     MAX_NEW_TOKENS_PRESCRIPTION,
     MODEL_ID,
 )
+from src.logger import get_logger, log_timing
 
 APP_NAME = "misalud-medgemma"
 APP_PATH = Path("/root/app")
 
 app = modal.App(APP_NAME)
+logger = get_logger(__name__)
 
 # Build image with uv for dependency management
 image = (
@@ -45,15 +47,19 @@ class MedGemmaModel:
         from transformers import AutoModelForImageTextToText, AutoProcessor
 
         hf_token = os.environ.get("HF_TOKEN")
-        self.processor = AutoProcessor.from_pretrained(
-            MODEL_ID, token=hf_token, use_fast=True
-        )
-        self.model = AutoModelForImageTextToText.from_pretrained(
-            MODEL_ID,
-            token=hf_token,
-            dtype=torch.bfloat16,  # Use dtype instead of deprecated torch_dtype
-            device_map="auto",
-        )
+        logger.info("Loading MedGemma model in Modal: %s", MODEL_ID)
+        with log_timing(logger, "modal.setup.load_processor"):
+            self.processor = AutoProcessor.from_pretrained(
+                MODEL_ID, token=hf_token, use_fast=True
+            )
+        with log_timing(logger, "modal.setup.load_model"):
+            self.model = AutoModelForImageTextToText.from_pretrained(
+                MODEL_ID,
+                token=hf_token,
+                dtype=torch.bfloat16,  # Use dtype instead of deprecated torch_dtype
+                device_map="auto",
+            )
+        logger.info("Modal model ready")
 
     @modal.method()
     def extract_from_image(
@@ -78,8 +84,15 @@ class MedGemmaModel:
         from src.inference.utils import extract_json_from_response
         from src.prompts import SYSTEM_INSTRUCTION
 
+        logger.info(
+            "Modal extract_from_image start (bytes=%d, max_new_tokens=%d)",
+            len(image_bytes),
+            max_new_tokens,
+        )
+
         # Load image from bytes
-        pil_image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        with log_timing(logger, "modal.extract.decode_image"):
+            pil_image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
         # Format conversation for MedGemma (following official docs structure)
         messages = [
@@ -97,28 +110,48 @@ class MedGemmaModel:
         ]
 
         # Process input (cast to bfloat16 per official docs)
-        inputs = self.processor.apply_chat_template(
-            messages,
-            add_generation_prompt=True,
-            tokenize=True,
-            return_dict=True,
-            return_tensors="pt",
-        ).to(self.model.device, dtype=torch.bfloat16)
+        with log_timing(logger, "modal.extract.apply_chat_template"):
+            inputs = self.processor.apply_chat_template(
+                messages,
+                add_generation_prompt=True,
+                tokenize=True,
+                return_dict=True,
+                return_tensors="pt",
+            ).to(self.model.device, dtype=torch.bfloat16)
 
         # Generate response
         with torch.inference_mode():
-            outputs = self.model.generate(
-                **inputs,
-                max_new_tokens=max_new_tokens,
-                do_sample=False,
-            )
+            with log_timing(logger, "modal.extract.generate"):
+                outputs = self.model.generate(
+                    **inputs,
+                    max_new_tokens=max_new_tokens,
+                    do_sample=False,
+                )
 
         # Decode response (skip input tokens)
         input_len = inputs["input_ids"].shape[-1]
-        response = self.processor.decode(outputs[0][input_len:], skip_special_tokens=True)
+        output_tokens = outputs[0].shape[-1] - input_len
+        logger.info(
+            "Modal tokens (input=%d, output=%d)", input_len, max(output_tokens, 0)
+        )
+        with log_timing(logger, "modal.extract.decode_output"):
+            response = self.processor.decode(
+                outputs[0][input_len:], skip_special_tokens=True
+            )
+        logger.debug("Raw response (head): %s", response[:500])
+        if len(response) > 500:
+            logger.debug("Raw response (tail): %s", response[-300:])
 
         # Extract JSON, handling thinking mode gracefully
-        return extract_json_from_response(response)
+        with log_timing(logger, "modal.extract.extract_json"):
+            extracted = extract_json_from_response(response)
+
+        logger.info(
+            "Modal response sizes (raw=%d, extracted=%d)",
+            len(response),
+            len(extracted),
+        )
+        return extracted
 
 
 @app.local_entrypoint()

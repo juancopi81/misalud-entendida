@@ -33,6 +33,18 @@ from src.prompts import CLINICAL_RECORD_PROMPT
 logger = get_logger(__name__)
 
 
+def log_raw_response(raw_response: str, head: int = 500, tail: int = 300) -> None:
+    """Log a safe excerpt of a raw model response."""
+    logger.info("Raw response length: %d", len(raw_response))
+    logger.info("--- Raw Response (head) ---")
+    logger.info(
+        raw_response[:head] + "..." if len(raw_response) > head else raw_response
+    )
+    if len(raw_response) > head:
+        logger.info("--- Raw Response (tail) ---")
+        logger.info("..." + raw_response[-tail:])
+
+
 def validate_prescription(backend, image_path: Path) -> bool:
     """Validate prescription extraction."""
     logger.info("%s", "=" * 60)
@@ -53,12 +65,7 @@ def validate_prescription(backend, image_path: Path) -> bool:
             logger.info("    Duracion: %s", med.duracion)
             logger.info("    Instrucciones: %s", med.instrucciones)
 
-    logger.info("--- Raw Response ---")
-    logger.info(
-        result.raw_response[:500] + "..."
-        if len(result.raw_response) > 500
-        else result.raw_response
-    )
+    log_raw_response(result.raw_response)
 
     return result.parse_success and len(result.medicamentos) > 0
 
@@ -88,12 +95,7 @@ def validate_lab_results(
             logger.info("    Rango: %s", res.rango_referencia)
             logger.info("    Estado: %s", res.estado)
 
-    logger.info("--- Raw Response ---")
-    logger.info(
-        result.raw_response[:500] + "..."
-        if len(result.raw_response) > 500
-        else result.raw_response
-    )
+    log_raw_response(result.raw_response)
 
     return result.parse_success
 
@@ -118,8 +120,7 @@ def validate_lab_results_from_raw(raw_response: str) -> bool:
             logger.info("    Rango: %s", res.rango_referencia)
             logger.info("    Estado: %s", res.estado)
 
-    logger.info("--- Raw Response ---")
-    logger.info(raw_response[:500] + "..." if len(raw_response) > 500 else raw_response)
+    log_raw_response(raw_response)
 
     return result.parse_success
 

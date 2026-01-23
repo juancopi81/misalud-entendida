@@ -2,6 +2,10 @@
 
 import json
 
+from src.logger import get_logger
+
+logger = get_logger(__name__)
+
 
 def extract_json_from_response(response: str) -> str:
     """Extract JSON from model response, handling thinking mode gracefully.
@@ -20,9 +24,17 @@ def extract_json_from_response(response: str) -> str:
     Returns:
         Extracted JSON string, or original response if no JSON found
     """
+    raw_len = len(response or "")
+
     # Strategy 1: Handle complete thinking mode
     if "<unused95>" in response:
-        response = response.split("<unused95>", 1)[1].strip()
+        thinking, remainder = response.split("<unused95>", 1)
+        logger.debug(
+            "Thinking segment detected (len=%d, raw_len=%d)", len(thinking), raw_len
+        )
+        response = remainder.strip()
+    else:
+        logger.debug("No thinking delimiter found (raw_len=%d)", raw_len)
 
     # Strategy 2: Strip markdown code fences if present
     stripped = response.strip()
@@ -37,6 +49,7 @@ def extract_json_from_response(response: str) -> str:
 
     # If response looks like valid JSON, return it
     if stripped.startswith("{") and stripped.endswith("}"):
+        logger.debug("Response is valid JSON shape (len=%d)", len(stripped))
         return stripped
 
     # Strategy 3: Extract JSON object containing expected keys
@@ -63,9 +76,23 @@ def extract_json_from_response(response: str) -> str:
             parsed = json.loads(candidate)
             # Verify it has expected keys
             if "medicamentos" in parsed or "resultados" in parsed:
+                logger.debug("Extracted JSON candidate (len=%d)", len(candidate))
                 return candidate
         except json.JSONDecodeError:
             continue
 
     # Strategy 4: Return cleaned response (let caller handle parse failure)
+    open_braces = stripped.count("{")
+    close_braces = stripped.count("}")
+    open_brackets = stripped.count("[")
+    close_brackets = stripped.count("]")
+    if open_braces != close_braces or open_brackets != close_brackets:
+        logger.debug(
+            "Unbalanced JSON delimiters: {=%d, }=%d, [=%d, ]=%d",
+            open_braces,
+            close_braces,
+            open_brackets,
+            close_brackets,
+        )
+    logger.debug("Returning stripped response (len=%d)", len(stripped))
     return stripped
