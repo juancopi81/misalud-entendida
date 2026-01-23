@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Literal
 
-from src.logger import get_logger
+from src.logger import get_logger, log_timing
 
 from src.inference.constants import (
     MAX_NEW_TOKENS_DEFAULT,
@@ -95,10 +95,12 @@ class ModalBackend(MedGemmaBackend):
 
         logger.debug("Calling Modal remote function (max_new_tokens=%d)", max_new_tokens)
         image_bytes = image_path.read_bytes()
+        logger.debug("Image bytes size: %d", len(image_bytes))
         model = MedGemmaModel()
-        result = model.extract_from_image.remote(
-            image_bytes, prompt, max_new_tokens=max_new_tokens
-        )
+        with log_timing(logger, "modal.extract_from_image.remote"):
+            result = model.extract_from_image.remote(
+                image_bytes, prompt, max_new_tokens=max_new_tokens
+            )
         logger.debug("Modal call complete, response length: %d", len(result) if result else 0)
         return result
 
@@ -132,15 +134,17 @@ class TransformersBackend(MedGemmaBackend):
             )
 
         logger.info("Loading MedGemma model: %s", self.model_id)
-        self._processor = AutoProcessor.from_pretrained(
-            self.model_id, token=hf_token, use_fast=True
-        )
-        self._model = AutoModelForImageTextToText.from_pretrained(
-            self.model_id,
-            token=hf_token,
-            dtype=torch.bfloat16,  # Use dtype instead of deprecated torch_dtype
-            device_map="auto",
-        )
+        with log_timing(logger, "local.load_processor"):
+            self._processor = AutoProcessor.from_pretrained(
+                self.model_id, token=hf_token, use_fast=True
+            )
+        with log_timing(logger, "local.load_model"):
+            self._model = AutoModelForImageTextToText.from_pretrained(
+                self.model_id,
+                token=hf_token,
+                dtype=torch.bfloat16,  # Use dtype instead of deprecated torch_dtype
+                device_map="auto",
+            )
         logger.info("Model loaded successfully")
 
     def extract_raw(
