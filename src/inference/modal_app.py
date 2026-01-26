@@ -34,7 +34,7 @@ image = (
 @app.cls(
     image=image,
     gpu="A10G",
-    timeout=300,
+    timeout=60 * 10,  # 10 minutes
     secrets=[modal.Secret.from_name("huggingface")],
     min_containers=1,
 )
@@ -63,7 +63,10 @@ class MedGemmaModel:
 
     @modal.method()
     def extract_from_image(
-        self, image_bytes: bytes, prompt: str, max_new_tokens: int = MAX_NEW_TOKENS_DEFAULT
+        self,
+        image_bytes: bytes,
+        prompt: str,
+        max_new_tokens: int = MAX_NEW_TOKENS_DEFAULT,
     ) -> str:
         """
         Extract information from a medical document image using MedGemma.
@@ -151,7 +154,12 @@ def main():
     from src.prompts import PRESCRIPTION_PROMPT
 
     # Read sample image
-    sample_path = Path(__file__).parent.parent.parent / "samples" / "prescriptions" / "receta_dermatologia_2025.jpeg"
+    sample_path = (
+        Path(__file__).parent.parent.parent
+        / "samples"
+        / "prescriptions"
+        / "receta_dermatologia_2025.jpeg"
+    )
 
     if not sample_path.exists():
         print(f"Sample image not found at: {sample_path}")
@@ -160,7 +168,9 @@ def main():
     print(f"Reading image from: {sample_path}")
     image_bytes = sample_path.read_bytes()
 
-    print("Calling Modal function (this may take a while on first run due to model download)...")
+    print(
+        "Calling Modal function (this may take a while on first run due to model download)..."
+    )
     model = MedGemmaModel()
     result = model.extract_from_image.remote(
         image_bytes,
