@@ -1,170 +1,38 @@
-{
-  "resultados": [
-    {
-      "nombre_prueba": "RECUENTO GLOBULOS ROJOS",
-      "valor": "5.10",
-      "unidad": "x 10^6/uL",
-      "rango_referencia": "4.10 - 5.40",
-      "estado": "normal"
-    },
-    {
-      "nombre_prueba": "HEMATOCRITO",
-      "valor": "46.50",
-      "unidad": "%",
-      "rango_referencia": "35.00 - 47.00",
-      "estado": "normal"
-    },
-    {
-      "nombre_prueba": "HEMOGLOBINA",
-      "valor": "15.20",
-      "unidad": "g/dL",
-      "rango_referencia": "12.00 - 15.30",
-      "estado": "normal"
-    },
-    {
-      "nombre_prueba": "VOLUMEN CORPUSCULAR MEDIO",
-      "valor": "91.50",
-      "unidad": "fL",
-      "rango_referencia": "80.00 - 100.00",
-      "estado": "normal"
-    },
-    {
-      "nombre_prueba": "HEMOGLOBINA CORPUSCULAR MEDIA",
-      "valor": "30.40",
-      "unidad": "pg",
-      "rango_referencia": "28.00 - 33.00",
-      "estado": "normal"
-    },
-    {
-      "nombre_prueba": "CONCENTRACION DE HEMOGLOBINA CORPUSCULAR MEDIA",
-      "valor": "33.30",
-      "unidad": "g/dL",
-      "rango_referencia": "33.00 - 36.00",
-      "estado": "normal"
-    },
-    {
-      "nombre_prueba": "RDW-ANCHO DISTRIBUCION ERITROCITOS",
-      "valor": "14.00",
-      "unidad": "%",
-      "rango_referencia": "11.50 - 15.50",
-      "estado": "normal"
-    },
-    {
-      "nombre_prueba": "RECUENTO TOTAL DE LEUCOCITOS",
-      "valor": "5.43",
-      "unidad": "x 10^3/uL",
-      "rango_referencia": "2.25 - 8.48",
-      "estado": "normal"
-    },
-    {
-      "nombre_prueba": "NEUTROFILOS",
-      "valor": "10.51",
-      "unidad": "x 10^3/uL",
-      "rango_referencia": "0.90 - 4.52",
-      "estado": "alto"
-    },
-    {
-      "nombre_prueba": "EOSINOFILOS",
-      "valor": "0.55",
-      "unidad": "x 10^3/uL",
-      "rango_referencia": "0.09 - 0.45",
-      "estado": "alto"
-    },
-    {
-      "nombre_prueba": "BASOFILOS",
-      "valor": "0.15",
-      "unidad": "x 10^3/uL",
-      "rango_referencia": "0.01 - 0.11",
-      "estado": "alto"
-    },
-    {
-      "nombre_prueba": "% LEUCOCITOS",
-      "valor": "51.40",
-      "unidad": "%",
-      "rango_referencia": "50.00 - 70.00",
-      "estado": "normal"
-    },
-    {
-      "nombre_prueba": "% LINFOCITOS",
-      "valor": "31.00",
-      "unidad": "%",
-      "rango_referencia": "20.00 - 40.00",
-      "estado": "alto"
-    },
-    {
-      "nombre_prueba": "% MONOCITOS",
-      "valor": "6.20",
-      "unidad": "%",
-      "rango_referencia": "2.00 - 11.00",
-      "estado": "normal"
-    },
-    {
-      "nombre_prueba": "% EOSINOFILOS",
-      "valor": "9.40",
-      "unidad": "%",
-      "rango_referencia": "0.00 - 40.00",
-      "estado": "alto"
-    },
-    {
-      "nombre_prueba": "% BASOFILOS",
-      "valor": "1.40",
-      "unidad": "%",
-      "rango_referencia": "0.00 - 1.00",
-      "estado": "alto"
-    },
-    {
-      "nombre_prueba": "METAMICELOS",
-      "valor": "0.00",
-      "unidad": "%",
-      "rango_referencia": "0.00 - 0.00",
-      "estado": "normal"
-    },
-    {
-      "nombre_prueba": "MIELOCITOS",
-      "valor": "0.00",
-      "unidad": "%",
-      "rango_referencia": "0.00 - 0.00",
-      "estado": "normal"
-    },
-    {
-      "nombre_prueba": "PROMIEZOS",
-      "valor": "0.00",
-      "unidad": "%",
-      "rango_referencia": "0.00 - 0.00",
-      "estado": "normal"
-    },
-    {
-      "nombre_prueba": "BLASTOS",
-      "valor": "0.00",
-      "unidad": "%",
-      "rango_referencia": "0.00 - 0.00",
-      "estado": "normal"
-    },
-    {
-      "nombre_prueba": "VOLUMEN DE PLAQUETAS",
-      "valor": "505",
-      "unidad": "x 10^3/uL",
-      "rango_referencia": "150 - 450",
-      "estado": "alto"
-    },
-    {
-      "nombre_prueba": "VOLUMEN PLAQUETARIO",
-      "valor": "10.40",
-      "unidad": "fL",
-      "rango_referencia": "7.00 - 11.00",
-      "estado": "normal"
-    },
-    {
-      "nombre_prueba": "% IG ABSOLUTO",
-      "valor": "10.30",
-      "unidad": "x 10^3/uL",
-      "rango_referencia": "7.00 - 11.00",
-      "estado": "normal"
-    },
-    {
-      "nombre_prueba": "NORMABLASTOS",
-      "valor": "0.00",
-      "unidad": "%",
-      "rango_referencia": "0.00 - 0.00",
-      "estado": "normal"
-    },
+<unused94>thought
+The user wants me to extract lab results from an image of a Colombian medical report.
+I need to identify each test, its value, unit, reference range, and status (normal/high/low).
+The output must be a single JSON object starting with "{" and ending with "}".
+It should not contain any explanations or markdown.
+The format for each test is: `{"nombre_prueba": "...", "valor": "...", "unidad": "...", "rango_referencia": "...", "estado": "..."}`
+I need to process the image and extract the data for each test listed under "CUADRO HEMATICO SIMPLE".
+
+1.  **Identify the section:** The relevant section is "CUADRO HEMATICO SIMPLE".
+2.  **Extract each test:**
+    *   RECUENTO GLOBULOS ROJOS: Value 5.10, Unit x 10^6/ul, Range 4.10 - 5.40, Status Normal
+    *   HEMATOCRITO: Value 46.50, Unit %, Range 35.00 - 47.00, Status Normal
+    *   HEMOGLOBINA: Value 15.20, Unit g/dl, Range 12.00 - 15.30, Status Normal
+    *   VOLUMEN CORPUSCULAR MEDIO: Value 91.50, Unit fL, Range 80.00 - 100.00, Status Normal
+    *   HEMOGLOBINA CORPUSCULAR MEDIA: Value 30.40, Unit pg, Range 28.00 - 33.00, Status Normal
+    *   CONCENTRACION DE HEMOGLOBINA CORPUSCULAR MEDIA: Value 33.30, Unit g/dl, Range 33.00 - 36.00, Status Normal
+    *   RDW-ANCHO DISTRIBUCION ERITROCITOS: Value 14.00, Unit %, Range 11.50 - 15.50, Status Normal
+    *   RECUENTO TOTAL DE LEUCOCITOS: Value 5.41, Unit x 10^3/ul, Range 2.25 - 8.48, Status Normal
+    *   NEUTROFILOS: Value 45.30, Unit %, Range 40.00 - 70.00, Status Normal
+    *   EOSINOFILOS: Value 0.59, Unit %, Range 0.00 - 0.50, Status Normal
+    *   BASOFILOS: Value 0.15, Unit %, Range 0.00 - 0.10, Status Normal
+    *   % NEUTROFILOS: Value 51.40, Unit %, Range 50.00 - 70.00, Status Normal
+    *   % EOSINOFILOS: Value 9.40, Unit %, Range 40.00 - 50.00, Status Normal
+    *   % BASOFILOS: Value 1.40, Unit %, Range 0.00 - 1.00, Status Normal
+    *   METAMICELOS: Value 0.00, Unit %, Range 0.00 - 2.00, Status Normal
+    *   MIELOCITOS: Value 0.00, Unit %, Range 0.00 - 1.00, Status Normal
+    *   PROMIEZOS: Value 0.00, Unit %, Range 0.00 - 0.50, Status Normal
+    *   BLASTOS: Value 0.00, Unit %, Range 0.00 - 0.50, Status Normal
+    *   VOLUMEN DE PLAQUETAS: Value 505, Unit x 10^3/ul, Range 150 - 450, Status High
+    *   VOLUMEN PLAQUETARIO: Value 10.40, Unit fL, Range 7.00 - 11.00, Status Normal
+    *   % PORCENTAJE: Value 10.30, Unit %, Range 0.00 - 10.00, Status Normal
+    *   IG ABSOLUTO: Value 150, Unit x 10^3/ul, Range 0.00 - 10.00, Status High
+    *   NORMABLASTOS: Value 0.00, Unit %, Range 0.00 - 10.00, Status Normal
+    *   % DE NORMABLASTOS: Value 0.00, Unit %, Range 0.00 - 10.00, Status Normal
+
+3.  **Format the output:** Create a JSON object with a key "resultados" containing an array of objects, each representing a test with the required fields. Ensure the final output is a single JSON object starting with "{" and ending with "}".<unused95>```json
+{"resultados": [{"nombre_prueba": "RECUENTO GLOBULOS ROJOS", "valor": "5.10", "unidad": "x 10^6/ul", "rango_referencia": "4.10 - 5.40", "estado": "normal"}, {"nombre_prueba": "HEMATOCRITO", "valor": "46.50", "unidad": "%", "rango_referencia": "35.00 - 47.00", "estado": "normal"}, {"nombre_prueba": "HEMOGLOBINA", "valor": "15.20", "unidad": "g/dl", "rango_referencia": "12.00 - 15.30", "estado": "normal"}, {"nombre_prueba": "VOLUMEN CORPUSCULAR MEDIO", "valor": "91.50", "unidad": "fL", "rango_referencia": "80.00 - 100.00", "estado": "normal"}, {"nombre_prueba": "HEMOGLOBINA CORPUSCULAR MEDIA", "valor": "30.40", "unidad": "pg", "rango_referencia": "28.00 - 33.00", "estado": "normal"}, {"nombre_prueba": "CONCENTRACION DE HEMOGLOBINA CORPUSCULAR MEDIA", "valor": "33.30", "unidad": "g/dl", "rango_referencia": "33.00 - 36.00", "estado": "normal"}, {"nombre_prueba": "RDW-ANCHO DISTRIBUCION ERITROCITOS", "valor": "14.00", "unidad": "%", "rango_referencia": "11.50 - 15.50", "estado": "normal"}, {"nombre_prueba": "RECUENTO TOTAL DE LEUCOCITOS", "valor": "5.41", "unidad": "x 10^3/ul", "rango_referencia": "2.25 - 8.48", "estado": "normal"}, {"nombre_prueba": "NEUTROFILOS", "valor": "45.30", "unidad": "%", "rango_referencia": "40.00 - 70.00", "estado": "normal"}, {"nombre_prueba": "EOSINOFILOS", "valor": "0.59", "unidad": "%", "rango_referencia": "0.00 - 0.50", "estado": "normal"}, {"nombre_prueba": "BASOFILOS", "valor": "0.15", "unidad": "%", "rango_referencia": "0.00 - 0.10", "estado": "normal"}, {"nombre_prueba": "% NEUTROFILOS", "valor": "51.40", "unidad": "%", "rango_referencia": "50.00 - 70.00", "estado": "normal"}, {"nombre_prueba": "% EOSINOFILOS", "valor": "9.40", "unidad": "%", "rango_referencia": "40.00 - 50.00", "estado": "normal"}, {"nombre_prueba": "% BASOFILOS", "valor": "1.40", "unidad": "%", "rango_referencia": "0.00 - 1.00", "estado": "normal"}, {"nombre_prueba": "METAMICELOS", "valor": "0.00", "unidad": "%", "rango_referencia": "0.00 - 2.00", "estado": "normal"}, {"nombre_prueba": "MIELOCITOS", "valor": "0.00", "unidad": "%", "rango_referencia": "0.00 - 1.00", "estado": "normal"}, {"nombre_prueba": "PROMIEZOS", "valor": "0.00", "unidad": "%", "rango_referencia": "0.00 - 0.50", "estado": "normal"}, {"nombre_prueba": "BLASTOS", "valor": "0.00", "unidad": "%", "rango_referencia": "0.00 - 0.50", "estado": "normal"}, {"nombre_prueba": "VOLUMEN DE PLAQUETAS", "valor": "505", "unidad": "x 10^3/ul", "rango_referencia": "150 - 450", "estado": "alto"}, {"nombre_prueba": "VOLUMEN PLAQUETARIO", "valor": "10.40", "unidad": "fL", "rango_referencia": "7.00 - 11.00", "estado": "normal"}, {"nombre_prueba": "% PORCENTAJE", "valor": "10.30", "unidad": "%", "rango_referencia": "0.00 - 10.00", "estado": "normal"}, {"nombre_prueba": "IG ABSOLUTO", "valor": "150", "unidad": "x 10^3/ul", "rango_referencia": "0.00 - 10.00", "estado": "alto"}, {"nombre_prueba": "NORMABLASTOS", "valor": "0.00", "unidad": "%", "rango_referencia": "0.00 - 10.00", "estado": "normal"}, {"nombre_prueba": "% DE NORMABLASTOS", "valor": "0.00", "unidad": "%", "rango_referencia": "0.00 - 10.00", "estado": "normal"}]}
+```
