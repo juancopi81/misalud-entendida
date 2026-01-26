@@ -25,6 +25,7 @@ import modal
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.inference.medgemma import get_backend
+from src.inference.utils import extract_json_from_response
 from src.inference.modal_app import app as modal_app
 from src.logger import get_logger
 from src.models import LabResultExtraction
@@ -106,7 +107,9 @@ def validate_lab_results_from_raw(raw_response: str) -> bool:
     logger.info("Testing lab results extraction: raw response")
     logger.info("%s", "=" * 60)
 
-    result = LabResultExtraction.from_json(raw_response)
+    extracted = extract_json_from_response(raw_response)
+    result = LabResultExtraction.from_json(extracted)
+    result.raw_response = raw_response
 
     logger.info("Parse success: %s", result.parse_success)
     logger.info("Results found: %d", len(result.resultados))

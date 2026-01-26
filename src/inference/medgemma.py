@@ -53,7 +53,9 @@ class MedGemmaBackend(ABC):
             image_path, PRESCRIPTION_PROMPT, max_new_tokens=MAX_NEW_TOKENS_PRESCRIPTION
         )
         logger.debug("Raw response (first 200 chars): %s", raw[:200] if raw else "empty")
-        result = PrescriptionExtraction.from_json(raw)
+        extracted = extract_json_from_response(raw)
+        result = PrescriptionExtraction.from_json(extracted)
+        result.raw_response = raw
         logger.info(
             "Prescription extraction complete: %d medications, parse_success=%s",
             len(result.medicamentos),
@@ -68,7 +70,9 @@ class MedGemmaBackend(ABC):
             image_path, LAB_RESULTS_PROMPT, max_new_tokens=MAX_NEW_TOKENS_LABS
         )
         logger.debug("Raw response (first 200 chars): %s", raw[:200] if raw else "empty")
-        result = LabResultExtraction.from_json(raw)
+        extracted = extract_json_from_response(raw)
+        result = LabResultExtraction.from_json(extracted)
+        result.raw_response = raw
         logger.info(
             "Lab results extraction complete: %d results, parse_success=%s",
             len(result.resultados),
@@ -202,8 +206,8 @@ class TransformersBackend(MedGemmaBackend):
             outputs[0][input_len:], skip_special_tokens=True
         )
 
-        # Extract JSON, handling thinking mode gracefully
-        return extract_json_from_response(response)
+        # Return raw response to allow local parsing/logging
+        return response
 
 
 # --- Factory ---
