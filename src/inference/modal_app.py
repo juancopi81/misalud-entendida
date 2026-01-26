@@ -81,7 +81,6 @@ class MedGemmaModel:
         import torch
         from PIL import Image
 
-        from src.inference.utils import extract_json_from_response
         from src.prompts import SYSTEM_INSTRUCTION
 
         logger.info(
@@ -142,16 +141,8 @@ class MedGemmaModel:
         if len(response) > 500:
             logger.debug("Raw response (tail): %s", response[-300:])
 
-        # Extract JSON, handling thinking mode gracefully
-        with log_timing(logger, "modal.extract.extract_json"):
-            extracted = extract_json_from_response(response)
-
-        logger.info(
-            "Modal response sizes (raw=%d, extracted=%d)",
-            len(response),
-            len(extracted),
-        )
-        return extracted
+        logger.info("Modal response size (raw=%d)", len(response))
+        return response
 
 
 @app.local_entrypoint()
