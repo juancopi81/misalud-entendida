@@ -31,8 +31,11 @@ Expected output: JSON with list of medications containing:
 """
 
 LAB_RESULTS_PROMPT = """Analiza esta imagen de resultados de laboratorio y extrae cada prueba.
+TU RESPUESTA DEBE SER UN UNICO OBJETO JSON. Debe comenzar con "{" y terminar con "}".
+No incluyas razonamiento, pasos, ni explicaciones. No uses markdown. No agregues texto extra.
+Si no sigues el formato exacto, la respuesta es invalida.
 Para cada prueba, incluye: nombre_prueba, valor, unidad, rango_referencia, estado (normal/alto/bajo).
-No incluyas razonamiento, pasos, ni explicaciones. Responde SOLO con JSON válido, sin markdown, en el siguiente formato:
+Formato exacto:
 {"resultados": [{"nombre_prueba": "...", "valor": "...", "unidad": "...", "rango_referencia": "...", "estado": "..."}]}"""
 """Prompt for extracting test results from lab result images.
 

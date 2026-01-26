@@ -8,5 +8,5 @@ MODEL_ID = "google/medgemma-1.5-4b-it"
 
 # Task-specific defaults (keep conservative for latency, adjust if truncation appears)
 MAX_NEW_TOKENS_PRESCRIPTION = 2048
-MAX_NEW_TOKENS_LABS = 4096
+MAX_NEW_TOKENS_LABS = 6144
 MAX_NEW_TOKENS_DEFAULT = 2048
