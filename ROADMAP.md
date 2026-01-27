@@ -43,7 +43,7 @@
 |--------|------|------------|
 | [ ] | Prescription extraction pipeline | Phase 1 complete |
 | [ ] | Lab results interpretation pipeline | Phase 1 complete |
-| [~] | CUM integration (generic alternatives) | API stub - drug_matcher.py complete |
+| [~] | CUM integration (generic alternatives) | drug_matcher.py + enrichment helper complete; pipeline integration pending |
 | [ ] | SISMED integration (price lookup) | API stub |
 | [x] | Drug interaction checker | src/interactions.py - 20+ common interactions |
 | [ ] | Spanish explanation generator | MedGemma prompts |
@@ -185,6 +185,10 @@ _Update this section as you complete tasks._
   - Supports brand name → generic name normalization (Glucophage → Metformina, etc.)
   - All Spanish labels, required disclaimers included
   - Run with: `uv run python src/app.py` or `uv run python main.py`
+- **Jan 27**: Prescription enrichment helper (CUM + SISMED)
+  - Added `src/pipelines/prescription_enrichment.py` with `enrich_medication()`
+  - Returns CUM match, form-filtered generics, and SISMED price summary
+  - Added unit tests for happy path, no-match, and form override
 
 ### Week 4
 -
