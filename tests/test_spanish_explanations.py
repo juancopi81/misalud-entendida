@@ -50,6 +50,20 @@ class TestSpanishExplanations:
         assert "alternativas genéricas" in explanation.lower()
         assert "Precios de referencia" in explanation
 
+    def test_non_dosage_moves_to_instructions(self):
+        med = MedicationItem(
+            nombre_medicamento="LUXONA",
+            dosis="Limpieza del rostro",
+            frecuencia="dos veces al día",
+            duracion="",
+            instrucciones="",
+        )
+
+        explanation = format_medication_explanation(med, enriched=None)
+
+        assert "Dosis indicada" not in explanation
+        assert "Instrucciones: Limpieza del rostro." in explanation
+
     def test_disclaimer_constants(self):
         assert "No reemplaza el consejo de su médico" in DISCLAIMER_FULL
         assert "No es consejo médico" in DISCLAIMER_SHORT

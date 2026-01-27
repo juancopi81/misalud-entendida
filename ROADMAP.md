@@ -199,6 +199,9 @@ _Update this section as you complete tasks._
 - **Jan 27**: Template-based Spanish explanations
   - Added `src/pipelines/spanish_explanations.py` for plain-language summaries
   - Pipeline now outputs per-medication explanations with disclaimers
+- **Jan 27**: Explanation heuristics refinement
+  - Avoids labeling non-dosage text as "Dosis indicada"
+  - Moves misclassified dosage text into instructions when needed
 
 ### Week 4
 -
