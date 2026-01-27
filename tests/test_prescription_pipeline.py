@@ -14,6 +14,7 @@ class TestPrescriptionPipeline:
         assert "No se pudieron extraer medicamentos" in result.medications_markdown
         assert result.generics_markdown == ""
         assert result.prices_markdown == ""
+        assert result.explanations_markdown == ""
 
     def test_pipeline_formats_generics_and_prices(self, monkeypatch, sample_cum_record):
         med = MedicationItem(
@@ -53,3 +54,4 @@ class TestPrescriptionPipeline:
         assert "Medicamentos Encontrados" in result.medications_markdown
         assert "Alternativas para" in result.generics_markdown
         assert "Precio referencia" in result.prices_markdown
+        assert "Aviso" in result.explanations_markdown
