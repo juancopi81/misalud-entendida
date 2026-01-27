@@ -9,6 +9,11 @@ from dataclasses import dataclass, field
 from src.logger import get_logger
 from src.models import MedicationItem, PrescriptionExtraction
 from src.pipelines.prescription_enrichment import EnrichedMedication, enrich_medication
+from src.pipelines.spanish_explanations import (
+    DISCLAIMER_FULL,
+    DISCLAIMER_SHORT,
+    format_medication_explanation,
+)
 
 logger = get_logger(__name__)
 
@@ -20,6 +25,7 @@ class PrescriptionPipelineResult:
     medications_markdown: str
     generics_markdown: str
     prices_markdown: str
+    explanations_markdown: str
     enriched: list[EnrichedMedication] = field(default_factory=list)
 
 
@@ -58,12 +64,14 @@ def build_prescription_output(
             ),
             generics_markdown="",
             prices_markdown="",
+            explanations_markdown="",
         )
 
     meds_md = f"## Medicamentos Encontrados ({len(extraction.medicamentos)})\n\n"
     enriched_results: list[EnrichedMedication] = []
     generics_sections: list[str] = []
     price_sections: list[str] = []
+    explanation_sections: list[str] = []
 
     for i, med in enumerate(extraction.medicamentos, 1):
         meds_md += format_medication_card(med, i)
@@ -77,6 +85,10 @@ def build_prescription_output(
             limit=limit,
         )
         enriched_results.append(enriched)
+
+        explanation = format_medication_explanation(med, enriched)
+        if explanation:
+            explanation_sections.append(f"### {med.nombre_medicamento}\n{explanation}")
 
         if enriched.match.record and enriched.generics:
             ingredient = enriched.match.record.principioactivo
@@ -112,10 +124,18 @@ def build_prescription_output(
         if price_sections
         else "No se encontraron precios de referencia."
     )
+    if explanation_sections:
+        explanations_output = (
+            "\n\n".join(explanation_sections)
+            + f"\n\n**Aviso:** {DISCLAIMER_FULL} {DISCLAIMER_SHORT}"
+        )
+    else:
+        explanations_output = "No se pudieron generar explicaciones."
 
     return PrescriptionPipelineResult(
         medications_markdown=meds_md,
         generics_markdown=generics_output,
         prices_markdown=prices_output,
+        explanations_markdown=explanations_output,
         enriched=enriched_results,
     )

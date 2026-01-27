@@ -43,17 +43,17 @@ de la salud antes de tomar decisiones sobre sus medicamentos.
 # --- Prescription Tab Functions ---
 
 
-def analyze_prescription(image_path: str | None) -> tuple[str, str, str]:
+def analyze_prescription(image_path: str | None) -> tuple[str, str, str, str]:
     """Analyze a prescription image and return formatted results.
 
     Args:
         image_path: Path to the prescription image
 
     Returns:
-        Tuple of (medications_md, generics_md, prices_md)
+        Tuple of (medications_md, generics_md, prices_md, explanations_md)
     """
     if not image_path:
-        return "Por favor suba una imagen de su receta.", "", ""
+        return "Por favor suba una imagen de su receta.", "", "", ""
 
     try:
         logger.info("Analyzing prescription: %s", image_path)
@@ -69,6 +69,7 @@ def analyze_prescription(image_path: str | None) -> tuple[str, str, str]:
                 "Asegúrese de que la imagen sea clara y legible.",
                 "",
                 "",
+                "",
             )
 
         pipeline_output = build_prescription_output(result, limit=5)
@@ -77,11 +78,12 @@ def analyze_prescription(image_path: str | None) -> tuple[str, str, str]:
             pipeline_output.medications_markdown,
             pipeline_output.generics_markdown,
             pipeline_output.prices_markdown,
+            pipeline_output.explanations_markdown,
         )
 
     except Exception as e:
         logger.error("Error analyzing prescription: %s", e)
-        return f"Error al analizar la receta: {str(e)}", "", ""
+        return f"Error al analizar la receta: {str(e)}", "", "", ""
 
 
 # --- Lab Results Tab Functions ---
@@ -324,6 +326,10 @@ def create_app() -> gr.Blocks:
                     "Los precios de referencia aparecerán aquí.",
                     label="Precios de Referencia",
                 )
+                prescription_explanations = gr.Markdown(
+                    "Las explicaciones aparecerán aquí.",
+                    label="Explicación en español",
+                )
 
                 analyze_prescription_btn.click(
                     fn=analyze_prescription,
@@ -332,6 +338,7 @@ def create_app() -> gr.Blocks:
                         prescription_meds,
                         prescription_generics,
                         prescription_prices,
+                        prescription_explanations,
                     ],
                 )
 

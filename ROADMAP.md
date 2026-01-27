@@ -46,7 +46,7 @@
 | [x] | CUM integration (generic alternatives) | Pipeline uses match_drug_to_cum → find_generics |
 | [x] | SISMED integration (price lookup) | Pipeline uses get_price_by_expediente + get_price_range |
 | [x] | Drug interaction checker | src/interactions.py - 20+ common interactions |
-| [ ] | Spanish explanation generator | MedGemma prompts |
+| [~] | Spanish explanation generator | Template-based explanations in pipeline |
 
 ### Track B: UI/UX (Person 2)
 | Status | Task | Depends On |
@@ -196,6 +196,9 @@ _Update this section as you complete tasks._
   - Added `src/pipelines/prescription_pipeline.py` to build Spanish markdown output
   - Pipeline calls `match_drug_to_cum()` → `find_generics()` → SISMED prices
   - Gradio prescription flow now uses `build_prescription_output()`
+- **Jan 27**: Template-based Spanish explanations
+  - Added `src/pipelines/spanish_explanations.py` for plain-language summaries
+  - Pipeline now outputs per-medication explanations with disclaimers
 
 ### Week 4
 -
