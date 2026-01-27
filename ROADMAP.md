@@ -41,10 +41,10 @@
 ### Track A: Backend/Pipelines (Person 1)
 | Status | Task | Depends On |
 |--------|------|------------|
-| [ ] | Prescription extraction pipeline | Phase 1 complete |
+| [x] | Prescription extraction pipeline | MedGemma extraction → pipeline output wired in app |
 | [ ] | Lab results interpretation pipeline | Phase 1 complete |
-| [~] | CUM integration (generic alternatives) | drug_matcher.py + enrichment helper complete; pipeline integration pending |
-| [ ] | SISMED integration (price lookup) | API stub |
+| [x] | CUM integration (generic alternatives) | Pipeline uses match_drug_to_cum → find_generics |
+| [x] | SISMED integration (price lookup) | Pipeline uses get_price_by_expediente + get_price_range |
 | [x] | Drug interaction checker | src/interactions.py - 20+ common interactions |
 | [ ] | Spanish explanation generator | MedGemma prompts |
 
@@ -189,6 +189,13 @@ _Update this section as you complete tasks._
   - Added `src/pipelines/prescription_enrichment.py` with `enrich_medication()`
   - Returns CUM match, form-filtered generics, and SISMED price summary
   - Added unit tests for happy path, no-match, and form override
+- **Jan 27**: Prescription lookup uses enrichment helper
+  - Wired `src/app.py` prescription flow to use `enrich_medication()`
+  - Passes MedGemma-extracted dosage into matching for better scoring
+- **Jan 27**: Prescription pipeline output (CUM + SISMED + Spanish)
+  - Added `src/pipelines/prescription_pipeline.py` to build Spanish markdown output
+  - Pipeline calls `match_drug_to_cum()` → `find_generics()` → SISMED prices
+  - Gradio prescription flow now uses `build_prescription_output()`
 
 ### Week 4
 -
