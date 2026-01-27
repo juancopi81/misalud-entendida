@@ -1,6 +1,7 @@
 """Template-based Spanish explanations for medications."""
 
 from dataclasses import dataclass
+import re
 
 from src.models import MedicationItem
 from src.pipelines.prescription_enrichment import EnrichedMedication
@@ -11,6 +12,35 @@ DISCLAIMER_FULL = (
     "No reemplaza el consejo de su médico."
 )
 DISCLAIMER_SHORT = "No es consejo médico."
+
+DOSAGE_HINTS = (
+    "mg",
+    "ml",
+    "g",
+    "mcg",
+    "ui",
+    "%",
+    "tableta",
+    "tabletas",
+    "capsula",
+    "capsulas",
+    "comprimido",
+    "comprimidos",
+    "gota",
+    "gotas",
+    "ampolla",
+    "ampollas",
+)
+DOSAGE_WORDS = (
+    "una",
+    "uno",
+    "dos",
+    "tres",
+    "cuatro",
+    "media",
+    "medio",
+    "mitad",
+)
 
 
 @dataclass(frozen=True)
@@ -28,6 +58,43 @@ class ExplanationContext:
     price_max: float | None
     price_avg: float | None
     price_date: str
+
+
+def _looks_like_dosage(text: str) -> bool:
+    if not text:
+        return False
+
+    lowered = text.lower()
+    if re.search(r"\d", text):
+        return True
+    if any(hint in lowered for hint in DOSAGE_HINTS):
+        return True
+    if any(word in lowered for word in DOSAGE_WORDS):
+        return True
+    return False
+
+
+def _normalize_dosage_and_instructions(
+    dosage: str,
+    instructions: str,
+) -> tuple[str, str]:
+    dosage_clean = dosage.strip()
+    instructions_clean = instructions.strip()
+
+    if not dosage_clean:
+        return "", instructions_clean
+
+    if instructions_clean and dosage_clean.lower() in instructions_clean.lower():
+        return "", instructions_clean
+
+    if not _looks_like_dosage(dosage_clean):
+        if instructions_clean:
+            if dosage_clean.lower() not in instructions_clean.lower():
+                instructions_clean = f"{instructions_clean}. {dosage_clean}"
+            return "", instructions_clean
+        return "", dosage_clean
+
+    return dosage_clean, instructions_clean
 
 
 def build_explanation_context(
@@ -75,6 +142,10 @@ def format_medication_explanation(
         return ""
 
     context = build_explanation_context(med, enriched)
+    dosage, instructions = _normalize_dosage_and_instructions(
+        context.dosage,
+        context.instructions,
+    )
     sentences: list[str] = []
 
     if context.active_ingredient:
@@ -86,14 +157,14 @@ def format_medication_explanation(
             "No se pudo validar este medicamento en el registro CUM."
         )
 
-    if context.dosage:
-        sentences.append(f"Dosis indicada: {context.dosage}.")
+    if dosage:
+        sentences.append(f"Dosis indicada: {dosage}.")
     if context.frequency:
         sentences.append(f"Frecuencia: {context.frequency}.")
     if context.duration:
         sentences.append(f"Duración: {context.duration}.")
-    if context.instructions:
-        sentences.append(f"Instrucciones: {context.instructions}.")
+    if instructions:
+        sentences.append(f"Instrucciones: {instructions}.")
 
     if context.generics_count > 0:
         sentences.append(
