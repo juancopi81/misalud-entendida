@@ -43,20 +43,20 @@
 |--------|------|------------|
 | [ ] | Prescription extraction pipeline | Phase 1 complete |
 | [ ] | Lab results interpretation pipeline | Phase 1 complete |
-| [ ] | CUM integration (generic alternatives) | API stub |
+| [~] | CUM integration (generic alternatives) | API stub - drug_matcher.py complete |
 | [ ] | SISMED integration (price lookup) | API stub |
-| [ ] | Drug interaction checker | Hardcoded list from RESEARCH.md |
+| [x] | Drug interaction checker | src/interactions.py - 20+ common interactions |
 | [ ] | Spanish explanation generator | MedGemma prompts |
 
 ### Track B: UI/UX (Person 2)
 | Status | Task | Depends On |
 |--------|------|------------|
-| [ ] | Gradio app skeleton | None |
-| [ ] | Prescription tab (upload + display) | None |
-| [ ] | Lab results tab (upload + display) | None |
-| [ ] | Medication tracker tab | None |
-| [ ] | Spanish labels and copy | None |
-| [ ] | Disclaimers ("No es consejo médico") | None |
+| [x] | Gradio app skeleton | None |
+| [x] | Prescription tab (upload + display) | None |
+| [x] | Lab results tab (upload + display) | None |
+| [x] | Medication tracker tab | None |
+| [x] | Spanish labels and copy | None |
+| [x] | Disclaimers ("No es consejo médico") | None |
 | [ ] | Mobile-friendly styling | None |
 
 ### Integration Point (End of Week 3)
@@ -116,6 +116,7 @@
 | Jan 20 | Use MedGemma 1.5 4B IT | `google/medgemma-1.5-4b-it` - newer version with thinking support |
 | Jan 21 | Centralize prompts & models | Single source of truth: `src/prompts.py`, `src/models.py` |
 | Jan 22 | Consolidate inference constants | Single source: `src/inference/constants.py` (MODEL_ID, token limits) |
+| Jan 26 | Multi-strategy drug matching | Product name + active ingredient search + fuzzy scoring for robust CUM lookup |
 
 ---
 
@@ -161,7 +162,29 @@ _Update this section as you complete tasks._
   - Added logging to `medgemma.py`, `cum.py`, `sismed.py` for pipeline debugging
 
 ### Week 3
--
+- **Jan 26**: Drug name matching for CUM lookup
+  - Created `src/api/drug_matcher.py` - matches extracted medication names to CUM records
+  - Multi-strategy matching: product name search → active ingredient search → fuzzy scoring
+  - `DrugMatchResult` dataclass with match type, confidence, alternatives
+  - Dosage extraction from medication names (e.g., "LOSARTAN 50MG" → "50", "MG")
+  - Form word stripping (TABLETAS, CAPSULAS, etc.)
+  - Verified with real drugs: METFORMINA, LOSARTAN, ACETAMINOFEN, LUXONA
+- **Jan 26**: Testing infrastructure
+  - Created `tests/` folder with pytest unit tests (34 tests, mocked API)
+  - `tests/conftest.py` - fixtures with sample CUM records for offline testing
+  - `tests/test_drug_matcher.py` - comprehensive unit tests for matching logic
+  - `scripts/validate_drug_matcher.py` - integration tests against real CUM API
+  - Added pytest config to `pyproject.toml`
+  - Run: `uv run pytest` (unit) | `uv run python scripts/validate_drug_matcher.py --all` (integration)
+- **Jan 26**: Gradio UI implementation complete
+  - Created `src/app.py` - main Gradio app with 3 tabs
+  - **Recetas tab**: Image upload → MedGemma extraction → CUM/SISMED lookup → display meds + generics + prices
+  - **Exámenes tab**: Image upload → MedGemma extraction → formatted results table with status indicators
+  - **Mis Medicamentos tab**: Session-based tracker with add/remove + interaction warnings
+  - Created `src/interactions.py` - drug interaction checker with 20+ common dangerous combinations
+  - Supports brand name → generic name normalization (Glucophage → Metformina, etc.)
+  - All Spanish labels, required disclaimers included
+  - Run with: `uv run python src/app.py` or `uv run python main.py`
 
 ### Week 4
 -

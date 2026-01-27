@@ -75,6 +75,37 @@ All outputs must include: "No es consejo médico" / "Esta herramienta es solo pa
 - `RESEARCH.md` - Technical details, MedGemma benchmarks, Colombian healthcare context, API documentation
 - `ROADMAP.md` - Project timeline with checkboxes for task tracking
 
+## Logging
+
+Use `src/logger.py` for all operational logging. Never use `print()` for logs.
+
+```python
+from src.logger import get_logger, log_timing, timed
+
+logger = get_logger(__name__)
+
+# Standard logging
+logger.info("Processing prescription...")
+logger.debug("Raw response: %s", response[:100])
+logger.warning("API returned empty results")
+logger.error("Failed to parse JSON: %s", str(e))
+
+# Timing a code block
+with log_timing(logger, "load_model"):
+    model = load_model()
+
+# Timing a function (decorator)
+@timed(logger, "extract_medications")
+def extract_medications(image):
+    ...
+```
+
+**When to use what:**
+- `logger.*` → Operational logs (API calls, processing steps, errors) - goes to stderr
+- `print()` → User-facing CLI output only (script results, progress) - goes to stdout
+
+Set log level via environment: `LOG_LEVEL=DEBUG uv run python ...`
+
 ## Workflow
 
 - **Update ROADMAP.md after changes are implemented** - Mark checkboxes complete, add progress notes, and log decisions as work is done
