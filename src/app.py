@@ -9,13 +9,12 @@ Usage:
 
 import gradio as gr
 
-from src.api.cum import find_generics, search_by_product_name
-from src.api.sismed import get_price_by_expediente, get_price_range
+from src.pipelines import build_prescription_output
 from src.inference import get_backend
 from src.inference.modal_app import app as modal_app
 from src.interactions import Interaction, check_interactions
 from src.logger import get_logger
-from src.models import LabResultExtraction, MedicationItem, PrescriptionExtraction
+from src.models import LabResultExtraction, PrescriptionExtraction
 
 logger = get_logger(__name__)
 
@@ -42,66 +41,6 @@ de la salud antes de tomar decisiones sobre sus medicamentos.
 
 
 # --- Prescription Tab Functions ---
-
-
-def format_medication_card(med: MedicationItem, index: int) -> str:
-    """Format a single medication as a markdown card."""
-    return f"""
-### {index}. {med.nombre_medicamento}
-
-| Campo | Valor |
-|-------|-------|
-| **Dosis** | {med.dosis or "No especificada"} |
-| **Frecuencia** | {med.frecuencia or "No especificada"} |
-| **Duración** | {med.duracion or "No especificada"} |
-| **Instrucciones** | {med.instrucciones or "Ninguna"} |
-"""
-
-
-def lookup_drug_info(med_name: str) -> tuple[str, str]:
-    """Look up CUM and SISMED info for a medication.
-
-    Returns:
-        Tuple of (generics_markdown, price_markdown)
-    """
-    generics_md = ""
-    price_md = ""
-
-    try:
-        # Search CUM by product name
-        cum_results = search_by_product_name(med_name, limit=5)
-
-        if cum_results:
-            # Get the active ingredient from first result
-            ingredient = cum_results[0].principioactivo
-            if ingredient:
-                # Find generics
-                generics = find_generics(ingredient, limit=5)
-                if generics:
-                    generics_md = f"**Alternativas para {ingredient}:**\n\n"
-                    for g in generics[:3]:
-                        is_generic = "GENERICO" in g.descripcioncomercial.upper()
-                        badge = " [GENÉRICO]" if is_generic else ""
-                        generics_md += f"- {g.producto}{badge} ({g.concentracion_valor}{g.unidadmedida})\n"
-
-                # Get price for first result
-                if cum_results[0].expedientecum:
-                    prices = get_price_by_expediente(
-                        cum_results[0].expedientecum, limit=10
-                    )
-                    price_summary = get_price_range(prices)
-                    if price_summary:
-                        price_md = f"""**Precio referencia:**
-- Mínimo: ${price_summary['min']:,.0f} COP
-- Máximo: ${price_summary['max']:,.0f} COP
-- Promedio: ${price_summary['avg']:,.0f} COP
-
-*Datos de {price_summary['fecha_datos']} (referencia histórica)*
-"""
-    except Exception as e:
-        logger.warning("Error looking up drug info for %s: %s", med_name, e)
-
-    return generics_md, price_md
 
 
 def analyze_prescription(image_path: str | None) -> tuple[str, str, str]:
@@ -132,34 +71,13 @@ def analyze_prescription(image_path: str | None) -> tuple[str, str, str]:
                 "",
             )
 
-        # Format medications
-        meds_md = f"## Medicamentos Encontrados ({len(result.medicamentos)})\n\n"
-        all_generics = []
-        all_prices = []
+        pipeline_output = build_prescription_output(result, limit=5)
 
-        for i, med in enumerate(result.medicamentos, 1):
-            meds_md += format_medication_card(med, i)
-
-            # Look up additional info
-            if med.nombre_medicamento:
-                generics_md, price_md = lookup_drug_info(med.nombre_medicamento)
-                if generics_md:
-                    all_generics.append(f"### {med.nombre_medicamento}\n{generics_md}")
-                if price_md:
-                    all_prices.append(f"### {med.nombre_medicamento}\n{price_md}")
-
-        generics_output = (
-            "\n\n".join(all_generics)
-            if all_generics
-            else "No se encontraron genéricos."
+        return (
+            pipeline_output.medications_markdown,
+            pipeline_output.generics_markdown,
+            pipeline_output.prices_markdown,
         )
-        prices_output = (
-            "\n\n".join(all_prices)
-            if all_prices
-            else "No se encontraron precios de referencia."
-        )
-
-        return meds_md, generics_output, prices_output
 
     except Exception as e:
         logger.error("Error analyzing prescription: %s", e)
