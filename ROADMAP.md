@@ -42,7 +42,7 @@
 | Status | Task | Depends On |
 |--------|------|------------|
 | [x] | Prescription extraction pipeline | MedGemma extraction → pipeline output wired in app |
-| [ ] | Lab results interpretation pipeline | Phase 1 complete |
+| [x] | Lab results interpretation pipeline | Phase 1 complete |
 | [x] | CUM integration (generic alternatives) | Pipeline uses match_drug_to_cum → find_generics |
 | [x] | SISMED integration (price lookup) | Pipeline uses get_price_by_expediente + get_price_range |
 | [x] | Drug interaction checker | src/interactions.py - 20+ common interactions |
@@ -60,7 +60,7 @@
 | [ ] | Mobile-friendly styling | None |
 
 ### Integration Point (End of Week 3)
-- [ ] Connect UI to backend pipelines
+- [x] Connect UI to backend pipelines
 - [ ] End-to-end test: photo → explanation + price
 - [ ] Fix integration bugs
 
@@ -199,6 +199,10 @@ _Update this section as you complete tasks._
 - **Jan 27**: Template-based Spanish explanations
   - Added `src/pipelines/spanish_explanations.py` for plain-language summaries
   - Pipeline now outputs per-medication explanations with disclaimers
+- **Jan 27**: Lab results pipeline output
+  - Added `src/pipelines/lab_results_pipeline.py` to format lab results + explanations
+  - Wired `src/app.py` lab flow to use `build_lab_results_output()`
+  - Added unit tests for normal-only and abnormal lab results output
 - **Jan 27**: Explanation heuristics refinement
   - Avoids labeling non-dosage text as "Dosis indicada"
   - Moves misclassified dosage text into instructions when needed
