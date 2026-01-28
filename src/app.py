@@ -9,7 +9,7 @@ Usage:
 
 import gradio as gr
 
-from src.pipelines import build_prescription_output
+from src.pipelines import build_lab_results_output, build_prescription_output
 from src.inference import get_backend
 from src.inference.modal_app import app as modal_app
 from src.interactions import Interaction, check_interactions
@@ -89,36 +89,6 @@ def analyze_prescription(image_path: str | None) -> tuple[str, str, str, str]:
 # --- Lab Results Tab Functions ---
 
 
-STATUS_EMOJI = {
-    "normal": "🟢",
-    "alto": "🔴",
-    "bajo": "🟡",
-}
-
-
-def get_status_emoji(estado: str) -> str:
-    """Get emoji for lab result status."""
-    return STATUS_EMOJI.get(estado.lower(), "⚪")
-
-
-def format_lab_results_table(results: list) -> str:
-    """Format lab results as a markdown table with status indicators."""
-    if not results:
-        return "No se encontraron resultados."
-
-    md = "| Estado | Prueba | Valor | Unidad | Rango Referencia |\n"
-    md += "|:------:|--------|-------|--------|------------------|\n"
-
-    for r in results:
-        emoji = get_status_emoji(r.estado)
-        md += f"| {emoji} | {r.nombre_prueba} | {r.valor} | {r.unidad} | {r.rango_referencia} |\n"
-
-    # Add legend
-    md += "\n\n**Leyenda:** 🟢 Normal | 🔴 Alto | 🟡 Bajo"
-
-    return md
-
-
 def analyze_lab_results(image_path: str | None) -> str:
     """Analyze a lab results image and return formatted results.
 
@@ -145,21 +115,7 @@ def analyze_lab_results(image_path: str | None) -> str:
                 "Asegúrese de que la imagen sea clara y legible."
             )
 
-        # Format results
-        md = f"## Resultados de Laboratorio ({len(result.resultados)} pruebas)\n\n"
-        md += format_lab_results_table(result.resultados)
-
-        # Add interpretation hints for abnormal values
-        abnormal = [
-            r for r in result.resultados if r.estado.lower() in ("alto", "bajo")
-        ]
-        if abnormal:
-            md += "\n\n### Valores Fuera de Rango\n\n"
-            for r in abnormal:
-                status = "por encima" if r.estado.lower() == "alto" else "por debajo"
-                md += f"- **{r.nombre_prueba}**: Su valor ({r.valor} {r.unidad}) está {status} del rango normal ({r.rango_referencia}). Consulte con su médico.\n"
-
-        return md
+        return build_lab_results_output(result)
 
     except Exception as e:
         logger.error("Error analyzing lab results: %s", e)
