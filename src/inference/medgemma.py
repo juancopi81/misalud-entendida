@@ -97,14 +97,31 @@ class ModalBackend(MedGemmaBackend):
         if not image_path.exists():
             raise FileNotFoundError(f"Image not found: {image_path}")
 
-        logger.debug("Calling Modal remote function (max_new_tokens=%d)", max_new_tokens)
+        width = height = None
+        try:
+            from PIL import Image
+
+            with Image.open(image_path) as img:
+                width, height = img.size
+        except Exception as exc:
+            logger.debug("Failed to read image dimensions: %s", exc)
+
         image_bytes = image_path.read_bytes()
         logger.debug("Image bytes size: %d", len(image_bytes))
+        logger.info(
+            "Submitting Modal request (bytes=%d, image=%sx%s, prompt_chars=%d, max_new_tokens=%d)",
+            len(image_bytes),
+            width if width is not None else "?",
+            height if height is not None else "?",
+            len(prompt),
+            max_new_tokens,
+        )
         model = MedGemmaModel()
         with log_timing(logger, "modal.extract_from_image.remote"):
             result = model.extract_from_image.remote(
                 image_bytes, prompt, max_new_tokens=max_new_tokens
             )
+        logger.info("Modal request finished")
         logger.debug("Modal call complete, response length: %d", len(result) if result else 0)
         return result
 
