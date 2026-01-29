@@ -13,10 +13,10 @@ from src.pipelines import build_lab_results_output, build_prescription_output
 from src.inference import get_backend
 from src.inference.modal_app import app as modal_app
 from src.interactions import Interaction, check_interactions
-from src.logger import get_logger
+from src.logger import get_logger, log_timing
 from src.models import LabResultExtraction, PrescriptionExtraction
 
-logger = get_logger(__name__)
+logger = get_logger("src.app")
 
 # Backend is initialized lazily within Modal context
 _backend = None
@@ -52,18 +52,26 @@ def analyze_prescription(image_path: str | None) -> tuple[str, str, str, str]:
     Returns:
         Tuple of (medications_md, generics_md, prices_md, explanations_md)
     """
+    logger.info("Analyze prescription button clicked")
     if not image_path:
         return "Por favor suba una imagen de su receta.", "", "", ""
 
     try:
-        logger.info("Analyzing prescription: %s", image_path)
+        logger.info("Starting prescription analysis: %s", image_path)
 
         # Extract prescription data using MedGemma (within Modal context)
         with modal_app.run():
+            logger.info("Initializing Modal backend")
             backend = get_modal_backend()
-            result: PrescriptionExtraction = backend.extract_prescription(image_path)
+            logger.info("Running MedGemma prescription extraction")
+            with log_timing(logger, "prescription.extract"):
+                result: PrescriptionExtraction = backend.extract_prescription(image_path)
 
         if not result.parse_success or not result.medicamentos:
+            logger.warning(
+                "Prescription extraction returned no medications (parse_success=%s)",
+                result.parse_success,
+            )
             return (
                 "No se pudieron extraer medicamentos de esta imagen. "
                 "Asegúrese de que la imagen sea clara y legible.",
@@ -72,8 +80,11 @@ def analyze_prescription(image_path: str | None) -> tuple[str, str, str, str]:
                 "",
             )
 
-        pipeline_output = build_prescription_output(result, limit=5)
+        logger.info("Building prescription pipeline output")
+        with log_timing(logger, "prescription.build_output"):
+            pipeline_output = build_prescription_output(result, limit=5)
 
+        logger.info("Prescription analysis complete")
         return (
             pipeline_output.medications_markdown,
             pipeline_output.generics_markdown,
@@ -82,7 +93,7 @@ def analyze_prescription(image_path: str | None) -> tuple[str, str, str, str]:
         )
 
     except Exception as e:
-        logger.error("Error analyzing prescription: %s", e)
+        logger.exception("Prescription analysis failed: %s", e)
         return f"Error al analizar la receta: {str(e)}", "", "", ""
 
 
@@ -98,27 +109,39 @@ def analyze_lab_results(image_path: str | None) -> str:
     Returns:
         Formatted markdown string with lab results
     """
+    logger.info("Analyze lab results button clicked")
     if not image_path:
         return "Por favor suba una imagen de sus resultados de laboratorio."
 
     try:
-        logger.info("Analyzing lab results: %s", image_path)
+        logger.info("Starting lab results analysis: %s", image_path)
 
         # Extract lab results using MedGemma (within Modal context)
         with modal_app.run():
+            logger.info("Initializing Modal backend")
             backend = get_modal_backend()
-            result: LabResultExtraction = backend.extract_lab_results(image_path)
+            logger.info("Running MedGemma lab extraction")
+            with log_timing(logger, "lab.extract"):
+                result: LabResultExtraction = backend.extract_lab_results(image_path)
 
         if not result.parse_success or not result.resultados:
+            logger.warning(
+                "Lab extraction returned no results (parse_success=%s)",
+                result.parse_success,
+            )
             return (
                 "No se pudieron extraer resultados de esta imagen. "
                 "Asegúrese de que la imagen sea clara y legible."
             )
 
-        return build_lab_results_output(result)
+        logger.info("Building lab results output")
+        with log_timing(logger, "lab.build_output"):
+            output = build_lab_results_output(result)
+        logger.info("Lab results analysis complete")
+        return output
 
     except Exception as e:
-        logger.error("Error analyzing lab results: %s", e)
+        logger.exception("Lab results analysis failed: %s", e)
         return f"Error al analizar los resultados: {str(e)}"
 
 

@@ -95,6 +95,14 @@ class MedGemmaModel:
         # Load image from bytes
         with log_timing(logger, "modal.extract.decode_image"):
             pil_image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        width, height = pil_image.size
+        logger.info(
+            "Modal request context: image=%dx%d, prompt_chars=%d, max_new_tokens=%d",
+            width,
+            height,
+            len(prompt),
+            max_new_tokens,
+        )
 
         # Format conversation for MedGemma (following official docs structure)
         messages = [
