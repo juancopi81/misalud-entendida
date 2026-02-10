@@ -25,6 +25,7 @@ class EnrichedMedication:
     generics: list[CUMRecord] = field(default_factory=list)
     prices: list[PriceRecord] = field(default_factory=list)
     price_summary: Optional[dict[str, Any]] = None
+    warnings: list[str] = field(default_factory=list)
 
 
 def _filter_by_form(
@@ -71,19 +72,33 @@ def enrich_medication(
 
     record = match_result.record
 
-    generics = find_generics(
-        record.principioactivo,
-        concentration=record.concentracion_valor,
-    )
+    warnings: list[str] = []
 
-    effective_form = form or record.formafarmaceutica
-    generics = _filter_by_form(generics, effective_form)
+    generics: list[CUMRecord] = []
+    try:
+        generics = find_generics(
+            record.principioactivo,
+            concentration=record.concentracion_valor,
+        )
+        effective_form = form or record.formafarmaceutica
+        generics = _filter_by_form(generics, effective_form)
+    except Exception as exc:
+        logger.warning("Failed to fetch CUM generics for %s: %s", medication_name, exc)
+        warnings.append(
+            "No se pudieron obtener alternativas genéricas en este momento."
+        )
 
     prices: list[PriceRecord] = []
     price_summary: Optional[dict[str, Any]] = None
     if record.expedientecum:
-        prices = get_price_by_expediente(record.expedientecum, limit=10)
-        price_summary = get_price_range(prices)
+        try:
+            prices = get_price_by_expediente(record.expedientecum, limit=10)
+            price_summary = get_price_range(prices)
+        except Exception as exc:
+            logger.warning("Failed to fetch SISMED prices for %s: %s", medication_name, exc)
+            warnings.append(
+                "No se pudieron obtener precios de referencia en este momento."
+            )
 
     return EnrichedMedication(
         medication_name=medication_name,
@@ -91,4 +106,5 @@ def enrich_medication(
         generics=generics,
         prices=prices,
         price_summary=price_summary,
+        warnings=warnings,
     )

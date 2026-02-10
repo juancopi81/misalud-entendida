@@ -72,6 +72,7 @@ def build_prescription_output(
     generics_sections: list[str] = []
     price_sections: list[str] = []
     explanation_sections: list[str] = []
+    warning_sections: list[str] = []
 
     for i, med in enumerate(extraction.medicamentos, 1):
         meds_md += format_medication_card(med, i)
@@ -85,6 +86,9 @@ def build_prescription_output(
             limit=limit,
         )
         enriched_results.append(enriched)
+        if enriched.warnings:
+            for warning in enriched.warnings:
+                warning_sections.append(f"- **{med.nombre_medicamento}**: {warning}")
 
         explanation = format_medication_explanation(med, enriched)
         if explanation:
@@ -124,13 +128,18 @@ def build_prescription_output(
         if price_sections
         else "No se encontraron precios de referencia."
     )
+    explanations_output_parts: list[str] = []
     if explanation_sections:
-        explanations_output = (
-            "\n\n".join(explanation_sections)
-            + f"\n\n**Aviso:** {DISCLAIMER_FULL} {DISCLAIMER_SHORT}"
-        )
+        explanations_output_parts.append("\n\n".join(explanation_sections))
     else:
-        explanations_output = "No se pudieron generar explicaciones."
+        explanations_output_parts.append("No se pudieron generar explicaciones.")
+
+    if warning_sections:
+        warnings_md = "### Avisos de disponibilidad\n\n" + "\n".join(warning_sections)
+        explanations_output_parts.append(warnings_md)
+
+    explanations_output_parts.append(f"**Aviso:** {DISCLAIMER_FULL} {DISCLAIMER_SHORT}")
+    explanations_output = "\n\n".join(explanations_output_parts)
 
     return PrescriptionPipelineResult(
         medications_markdown=meds_md,
