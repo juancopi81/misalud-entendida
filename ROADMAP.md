@@ -108,7 +108,7 @@
 ## Decision Log
 | Date | Decision | Rationale |
 |------|----------|-----------|
-| Jan 20 | Use HF Inference API as primary | De-risks GPU availability on Kaggle |
+| Feb 10 | Runtime strategy: Modal-first with configurable Transformers fallback | Keeps current demo reliability while enabling local fallback via `INFERENCE_BACKEND` |
 | Jan 20 | SISMED prices are "reference only" | Data is from 2019, show date to users |
 | Jan 20 | Link CUM→SISMED via expedientecum | Shared field enables price lookup for drugs |
 | Jan 20 | Use Modal A10G for inference | Pay-per-use (~$0.36/hr), 24GB VRAM, local dev + remote inference |
@@ -208,7 +208,12 @@ _Update this section as you complete tasks._
   - Moves misclassified dosage text into instructions when needed
 
 ### Week 4
--
+- **Feb 10**: Foundation hardening (Fix Now pass)
+  - Added explicit backend selection via `INFERENCE_BACKEND` (`auto`, `modal`, `transformers`)
+  - Implemented backend fallback in app handlers for prescriptions and lab results
+  - Added graceful degradation in prescription enrichment for CUM/SISMED outages
+  - Added CI workflow with `ruff` + `pytest`
+  - Added integration tests for app handler fallback and API failure paths
 
 ### Week 5
 -
