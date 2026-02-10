@@ -59,7 +59,7 @@ def validate_single_drug(drug_name: str, verbose: bool = False) -> DrugMatchResu
     print(f"  Normalized: {result.query_normalized}")
 
     if result.record:
-        print(f"\n  Best Match:")
+        print("\n  Best Match:")
         print(f"    Product: {result.record.producto}")
         print(f"    Ingredient: {result.record.principioactivo}")
         print(f"    Concentration: {result.record.concentracion_valor}{result.record.unidadmedida}")
@@ -75,7 +75,7 @@ def validate_single_drug(drug_name: str, verbose: bool = False) -> DrugMatchResu
         print("  No match found")
 
     if verbose and result.debug_info:
-        print(f"\n  Debug info:")
+        print("\n  Debug info:")
         for key, value in result.debug_info.items():
             print(f"    {key}: {value}")
 
@@ -121,12 +121,12 @@ def run_all_validations(verbose: bool = False) -> tuple[int, int]:
                 print(f"        Ingredient: {result.record.principioactivo}")
             passed += 1
         else:
-            print(f"  FAIL:")
+            print("  FAIL:")
             print(f"    Got match_type={result.match_type} (expected {expected_type})")
             if result.record:
                 print(f"    Got ingredient={result.record.principioactivo}")
             else:
-                print(f"    Got no match")
+                print("    Got no match")
             failed += 1
 
         if verbose and result.debug_info:
