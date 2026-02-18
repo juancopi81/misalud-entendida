@@ -8,14 +8,12 @@ Usage:
 """
 
 import os
-from contextlib import nullcontext
 from typing import Any, Callable
 
 import gradio as gr
 
 from src.pipelines import build_lab_results_output, build_prescription_output
 from src.inference import get_backend
-from src.inference.modal_app import app as modal_app
 from src.interactions import Interaction, check_interactions
 from src.logger import get_logger, log_timing
 from src.models import LabResultExtraction, PrescriptionExtraction
@@ -58,13 +56,6 @@ def _get_backend_instance(backend_name: str) -> Any:
     return backend
 
 
-def _get_backend_context(backend_name: str):
-    """Return execution context manager for the requested backend."""
-    if backend_name == "modal":
-        return modal_app.run()
-    return nullcontext()
-
-
 def _run_extraction_with_fallback(
     image_path: str,
     task_label: str,
@@ -80,9 +71,8 @@ def _run_extraction_with_fallback(
             backend = _get_backend_instance(backend_name)
             logger.info("Trying backend=%s for %s", backend_name, task_label)
 
-            with _get_backend_context(backend_name):
-                with log_timing(logger, f"{task_label}.extract.{backend_name}"):
-                    result = getattr(backend, method_name)(image_path)
+            with log_timing(logger, f"{task_label}.extract.{backend_name}"):
+                result = getattr(backend, method_name)(image_path)
 
             if is_valid_result(result):
                 logger.info("%s extraction succeeded with backend=%s", task_label, backend_name)

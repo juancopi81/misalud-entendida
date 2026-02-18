@@ -90,8 +90,8 @@ class ModalBackend(MedGemmaBackend):
         prompt: str,
         max_new_tokens: int = MAX_NEW_TOKENS_DEFAULT,
     ) -> str:
-        """Call Modal function to extract from image."""
-        from .modal_app import MedGemmaModel
+        """Call deployed Modal function to extract from image."""
+        import modal
 
         image_path = Path(image_path)
         if not image_path.exists():
@@ -116,7 +116,10 @@ class ModalBackend(MedGemmaBackend):
             len(prompt),
             max_new_tokens,
         )
-        model = MedGemmaModel()
+        from .modal_app import APP_NAME, CLS_NAME
+
+        Model = modal.Cls.from_name(APP_NAME, CLS_NAME)
+        model = Model()
         with log_timing(logger, "modal.extract_from_image.remote"):
             result = model.extract_from_image.remote(
                 image_bytes, prompt, max_new_tokens=max_new_tokens

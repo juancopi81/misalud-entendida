@@ -13,6 +13,7 @@ from src.inference.constants import (
 from src.logger import get_logger, log_timing
 
 APP_NAME = "misalud-medgemma"
+CLS_NAME = "MedGemmaModel"
 APP_PATH = Path("/root/app")
 
 app = modal.App(APP_NAME)
@@ -36,7 +37,8 @@ image = (
     gpu="A10G",
     timeout=60 * 10,  # 10 minutes
     secrets=[modal.Secret.from_name("huggingface")],
-    min_containers=1,
+    min_containers=0,
+    scaledown_window=300,
 )
 class MedGemmaModel:
     """Warm-started MedGemma container to avoid reloading on each call."""

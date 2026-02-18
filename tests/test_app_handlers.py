@@ -1,7 +1,5 @@
 """Integration-style tests for app handlers and backend fallback behavior."""
 
-from types import SimpleNamespace
-
 import pytest
 
 import src.app as app_module
@@ -9,22 +7,9 @@ from src.models import MedicationItem, PrescriptionExtraction
 from src.pipelines.prescription_pipeline import PrescriptionPipelineResult
 
 
-class _DummyContext:
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc, tb):
-        return False
-
-
 @pytest.fixture(autouse=True)
-def _reset_app_backend_cache(monkeypatch):
+def _reset_app_backend_cache():
     app_module._backend_cache.clear()
-    monkeypatch.setattr(
-        app_module,
-        "modal_app",
-        SimpleNamespace(run=lambda: _DummyContext()),
-    )
 
 
 def test_analyze_prescription_falls_back_to_transformers(monkeypatch):
