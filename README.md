@@ -41,7 +41,7 @@ uv sync --all-groups
 If using the Modal inference backend, deploy it before running the app:
 
 ```bash
-modal deploy src/inference/modal_app.py
+uv run modal deploy src/inference/modal_app.py
 ```
 
 Redeploy after any changes to `src/inference/modal_app.py` or when rotating the `huggingface` Modal secret.

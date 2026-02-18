@@ -116,7 +116,9 @@ class ModalBackend(MedGemmaBackend):
             len(prompt),
             max_new_tokens,
         )
-        Model = modal.Cls.from_name("misalud-medgemma", "MedGemmaModel")
+        from .modal_app import APP_NAME, CLS_NAME
+
+        Model = modal.Cls.from_name(APP_NAME, CLS_NAME)
         model = Model()
         with log_timing(logger, "modal.extract_from_image.remote"):
             result = model.extract_from_image.remote(

@@ -13,6 +13,7 @@ from src.inference.constants import (
 from src.logger import get_logger, log_timing
 
 APP_NAME = "misalud-medgemma"
+CLS_NAME = "MedGemmaModel"
 APP_PATH = Path("/root/app")
 
 app = modal.App(APP_NAME)

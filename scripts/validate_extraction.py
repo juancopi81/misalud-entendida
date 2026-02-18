@@ -13,6 +13,7 @@ Requirements:
     1. Modal token: `modal token new`
     2. HuggingFace secret: `modal secret create huggingface HF_TOKEN=<your_token>`
     3. HuggingFace access: Accept terms at https://huggingface.co/google/medgemma-1.5-4b-it
+    4. Deployed Modal app: `uv run modal deploy src/inference/modal_app.py`
 """
 
 import argparse

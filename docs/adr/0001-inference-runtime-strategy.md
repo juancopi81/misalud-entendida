@@ -47,7 +47,7 @@ The original implementation wrapped every Modal inference call in `modal_app.run
 
 Key changes:
 
-- `modal deploy src/inference/modal_app.py` is now a prerequisite before running the app with the Modal backend.
+- `uv run modal deploy src/inference/modal_app.py` is now a prerequisite before running the app with the Modal backend.
 - `min_containers` set to 0 (no always-on cost) with `scaledown_window=300` (5-min warm window).
 - The ephemeral `modal_app.run()` context manager has been removed from `src/app.py` and `scripts/validate_extraction.py`.
 - `MedGemmaModel` class and method definitions in `modal_app.py` are unchanged and continue to serve both `modal deploy` and `modal run` usage.
