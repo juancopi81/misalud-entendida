@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-MiSalud Entendida is a healthcare literacy app for the MedGemma Impact Challenge (Kaggle, deadline Feb 24, 2026). It uses MedGemma 1.5's document understanding capabilities to help Colombians understand prescriptions, lab results, and medication prices.
+MiSalud Entendida is a healthcare literacy app for the MedGemma Impact Challenge (Kaggle, deadline Feb 24, 2026, 11:59 PM UTC). It uses MedGemma 1.5's document understanding capabilities to help Colombians understand prescriptions, lab results, and medication prices.
 
 **One-line pitch**: Entiende tus recetas y exámenes con IA médica abierta
 
@@ -71,10 +71,10 @@ All outputs must include: "No es consejo médico" / "Esta herramienta es solo pa
 
 ## Key Documentation
 
-- `SUBMISSION_DECISION_PLAN.md` - GO/NO-GO submission gate and decision sprint (must pass before video/write-up)
-- `PROJECT_SPECS.md` - Product specification, MVP scope, success metrics
-- `RESEARCH.md` - Technical details, MedGemma benchmarks, Colombian healthcare context, API documentation
-- `ROADMAP.md` - Project timeline with checkboxes for task tracking
+- `SUBMISSION_DECISION_PLAN.md` - Primary source of truth for GO/NO-GO submission gate and decision sprint (must pass before video/write-up)
+- `ROADMAP.md` - Current status and checklist tracking
+- `PROJECT_SPECS.md` - Product specification and scope
+- `RESEARCH.md` - Background references and technical context
 
 ## Logging
 

@@ -15,7 +15,6 @@ import gradio as gr
 
 from src.pipelines import build_lab_results_output, build_prescription_output
 from src.inference import get_backend
-from src.inference.modal_app import app as modal_app
 from src.interactions import Interaction, check_interactions
 from src.logger import get_logger, log_timing
 from src.models import LabResultExtraction, PrescriptionExtraction
@@ -60,8 +59,6 @@ def _get_backend_instance(backend_name: str) -> Any:
 
 def _get_backend_context(backend_name: str):
     """Return execution context manager for the requested backend."""
-    if backend_name == "modal":
-        return modal_app.run()
     return nullcontext()
 
 

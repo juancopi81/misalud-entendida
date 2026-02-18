@@ -1,6 +1,6 @@
 # MiSalud Entendida - Project ROADMAP
 
-> **Deadline**: February 24, 2026
+> **Deadline**: February 24, 2026, 11:59 PM UTC
 > **Team**: 2 people (~15-20 hrs/week each)
 > **Competition**: MedGemma Impact Challenge (Kaggle)
 > **Decision gate first**: Follow `SUBMISSION_DECISION_PLAN.md` and complete GO/NO-GO before video/write-up packaging
@@ -68,13 +68,13 @@
 ---
 
 ## Phase 3: Polish & Submit (Weeks 4-5: Feb 10-24)
-**Goal**: Run GO/NO-GO decision sprint first, then package and submit only if GO.
+**Goal**: Run GO/NO-GO decision sprint first (`SUBMISSION_DECISION_PLAN.md`), then package and submit only if GO.
 
 ### Track A: Testing & Quality (Person 1)
 | Status | Task | Notes |
 |--------|------|-------|
-| [ ] | Test 5+ real prescriptions | Document accuracy |
-| [ ] | Test 3+ real lab results | Document accuracy |
+| [ ] | Test 20 real prescriptions | GO gate target set in `SUBMISSION_DECISION_PLAN.md` |
+| [ ] | Test 10 real lab results | GO gate target set in `SUBMISSION_DECISION_PLAN.md` |
 | [ ] | Fix extraction edge cases | Based on test results |
 | [ ] | Validate Spanish with native speaker | Quality check |
 | [ ] | Performance optimization | If needed |

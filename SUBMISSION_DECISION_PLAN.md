@@ -13,6 +13,12 @@ This document is the source of truth for:
 2. The quantitative gate to decide `GO` or `NO-GO`.
 3. The minimum evidence needed to stand out.
 
+## Related docs
+
+- `ROADMAP.md`: task tracking and current status.
+- `PROJECT_SPECS.md`: product scope and success intent.
+- `RESEARCH.md`: supporting references and background.
+
 ## Decision Rule
 
 Do not start video/write-up work until the `GO/NO-GO` gate is evaluated.

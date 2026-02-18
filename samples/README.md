@@ -23,6 +23,8 @@ These samples are used for:
 2. Validating Spanish medical document parsing
 3. Demo/competition submission
 
+For GO/NO-GO evaluation thresholds and required sample counts, use `../SUBMISSION_DECISION_PLAN.md`.
+
 ```bash
 # Test prescription extraction (once pipeline is built)
 uv run python -m src.inference.medgemma samples/prescriptions/receta_dermatologia_2025.jpeg

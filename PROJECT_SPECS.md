@@ -10,7 +10,7 @@
 
 **Specific goals**:
 
-- Win or place in the MedGemma Impact Challenge (Google HAI-DEF on Kaggle) (deadline: Feb 24, 2026)
+- Win or place in the MedGemma Impact Challenge (Google HAI-DEF on Kaggle) (deadline: Feb 24, 2026, 11:59 PM UTC)
 - Demonstrate effective use of MedGemma 1.5's new capabilities
 - Create a compelling 3-minute video demo
 
@@ -190,8 +190,10 @@ def process_lab_results(image):
 
 | Signal | Target | Notes |
 |--------|--------|-------|
-| Prescription extraction | >85% | Correct drug, dose, frequency |
-| Lab value extraction | >75% | Correct values and units |
+| Prescription extraction | >=85% | Correct drug, dose, frequency |
+| Lab value extraction | >=75% | Correct values and units |
+| End-to-end demo success | >=90% | Measured over evaluation runs |
+| Reliability run stability | 5/5 | Consecutive end-to-end runs |
 | Price lookup success | >90% | Match found in SISMED |
 | Spanish explanation quality | Subjective | Review with native speakers |
 
@@ -223,6 +225,10 @@ def process_lab_results(image):
 
 Decision note: Follow `SUBMISSION_DECISION_PLAN.md` first. Only produce video/write-up after GO.
 
+Execution docs:
+- `SUBMISSION_DECISION_PLAN.md` - submission decision gate and thresholds
+- `ROADMAP.md` - current checklist and status
+
 1. **Video** (3 min): Demo with narration
 2. **Write-up** (3 pages): Problem, solution, technical approach, impact
 3. **Code**: Kaggle notebook with reproducible inference
@@ -241,8 +247,8 @@ Decision note: Follow `SUBMISSION_DECISION_PLAN.md` first. Only produce video/wr
 **Tasks**:
 
 - [ ] Execute `SUBMISSION_DECISION_PLAN.md` and make GO/NO-GO decision by gate metrics
-- [ ] Evaluate 5+ real prescriptions and document extraction accuracy
-- [ ] Evaluate 3+ real lab reports and document extraction accuracy
+- [ ] Evaluate 20 real prescriptions and document extraction accuracy
+- [ ] Evaluate 10 real lab reports and document extraction accuracy
 - [ ] Resolve extraction edge cases found in evaluation
 - [ ] Validate Spanish explanation quality with native reviewers
 - [ ] Finalize competition assets (3-min video, 3-page write-up, Kaggle reproducibility) only if GO

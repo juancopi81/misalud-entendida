@@ -95,10 +95,10 @@ uv run python scripts/validate_drug_matcher.py --all
 - SISMED prices are historical reference data, not real-time pharmacy prices.
 - CUM/SISMED availability can vary; the app now degrades gracefully when one provider is unavailable.
 
-## Key docs
+## Documentation hierarchy
 
-- `SUBMISSION_DECISION_PLAN.md` - Source of truth for GO/NO-GO submission decision and pre-packaging sprint
-- `PROJECT_SPECS.md`
-- `ROADMAP.md`
-- `RESEARCH.md`
-- `docs/adr/0001-inference-runtime-strategy.md`
+- `SUBMISSION_DECISION_PLAN.md` - Source of truth for GO/NO-GO submission decision and pre-packaging sprint.
+- `ROADMAP.md` - Current execution status and checklist tracking.
+- `PROJECT_SPECS.md` - Product scope and success criteria.
+- `RESEARCH.md` - Background research and references (supporting context).
+- `docs/adr/0001-inference-runtime-strategy.md` - Runtime strategy decision record.

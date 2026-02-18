@@ -1,5 +1,7 @@
 # Research: MiSalud Entendida
 
+> Note: This file is background context. Active submission decisions and gating live in `SUBMISSION_DECISION_PLAN.md`, with status tracking in `ROADMAP.md`.
+
 ## Concept
 
 A healthcare literacy app for the MedGemma Impact Challenge (Google HAI-DEF on Kaggle) that uses MedGemma 1.5's document understanding capabilities to help Colombians understand prescriptions, lab results, and medication prices.
@@ -10,7 +12,7 @@ A healthcare literacy app for the MedGemma Impact Challenge (Google HAI-DEF on K
 
 - **Name**: The MedGemma Impact Challenge (Google Health AI Developer Foundations / HAI-DEF)
 - **Platform**: Kaggle
-- **Deadline**: February 24, 2026
+- **Deadline**: February 24, 2026, 11:59 PM UTC
 - **Prize pool**: $100,000
 - **Focus**: Applications using MedGemma 1.5 open-weight medical AI model
 - **Theme**: Privacy-focused healthcare AI that "can run anywhere"
@@ -31,6 +33,8 @@ A healthcare literacy app for the MedGemma Impact Challenge (Google HAI-DEF on K
 2. **Technical write-up** (max 3 pages)
 3. **Code/notebook** (reproducible on Kaggle)
 4. **Optional**: Hosted demo
+
+Current decision gate and execution order: `SUBMISSION_DECISION_PLAN.md` -> `ROADMAP.md`.
 
 ## MedGemma 1.5 Technical Details
 
@@ -360,12 +364,14 @@ with gr.Blocks(title="MiSalud Entendida") as demo:
 
 **Our differentiation**: Colombian context + MedGemma understanding + local pricing
 
-## Implementation Timeline
+## Implementation Timeline (Historical, Superseded)
+
+For current execution and submit/no-submit gating, use `SUBMISSION_DECISION_PLAN.md`.
 
 ### Phase 1: Validation (Days 1-3)
 - [ ] Set up MedGemma 1.5 in Kaggle notebook
-- [ ] Test on 5 sample Colombian prescriptions
-- [ ] Test lab extraction on 3 sample reports
+- [ ] Test on 20 sample Colombian prescriptions
+- [ ] Test lab extraction on 10 sample reports
 - [ ] Verify SODA API access works
 
 ### Phase 2: Core Build (Days 4-10)
@@ -390,11 +396,12 @@ with gr.Blocks(title="MiSalud Entendida") as demo:
 
 | Metric | Target | Measurement |
 |--------|--------|-------------|
-| Prescription extraction accuracy | >85% | Manual review of 20 samples |
-| Lab value extraction accuracy | >75% | Manual review of 10 samples |
+| Prescription extraction accuracy | >=85% | Manual review of 20 samples |
+| Lab value extraction accuracy | >=75% | Manual review of 10 samples |
 | CUM API success rate | >90% | Automated testing |
 | SISMED API success rate | >90% | Automated testing |
-| Demo runs end-to-end | 100% | Must work for video |
+| End-to-end demo success | >=90% | Measured over defined evaluation runs |
+| Reliability run stability | 5/5 | Consecutive end-to-end runs |
 
 ## References
 
