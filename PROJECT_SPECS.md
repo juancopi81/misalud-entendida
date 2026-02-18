@@ -221,6 +221,8 @@ def process_lab_results(image):
 
 ## Deliverables for Competition
 
+Decision note: Follow `SUBMISSION_DECISION_PLAN.md` first. Only produce video/write-up after GO.
+
 1. **Video** (3 min): Demo with narration
 2. **Write-up** (3 pages): Problem, solution, technical approach, impact
 3. **Code**: Kaggle notebook with reproducible inference
@@ -238,8 +240,9 @@ def process_lab_results(image):
 
 **Tasks**:
 
+- [ ] Execute `SUBMISSION_DECISION_PLAN.md` and make GO/NO-GO decision by gate metrics
 - [ ] Evaluate 5+ real prescriptions and document extraction accuracy
 - [ ] Evaluate 3+ real lab reports and document extraction accuracy
 - [ ] Resolve extraction edge cases found in evaluation
 - [ ] Validate Spanish explanation quality with native reviewers
-- [ ] Finalize competition assets (3-min video, 3-page write-up, Kaggle reproducibility)
+- [ ] Finalize competition assets (3-min video, 3-page write-up, Kaggle reproducibility) only if GO

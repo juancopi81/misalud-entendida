@@ -87,6 +87,7 @@ uv run python scripts/validate_drug_matcher.py --all
 
 ## Key docs
 
+- `SUBMISSION_DECISION_PLAN.md` - Source of truth for GO/NO-GO submission decision and pre-packaging sprint
 - `PROJECT_SPECS.md`
 - `ROADMAP.md`
 - `RESEARCH.md`

@@ -71,6 +71,7 @@ All outputs must include: "No es consejo médico" / "Esta herramienta es solo pa
 
 ## Key Documentation
 
+- `SUBMISSION_DECISION_PLAN.md` - GO/NO-GO submission gate and decision sprint (must pass before video/write-up)
 - `PROJECT_SPECS.md` - Product specification, MVP scope, success metrics
 - `RESEARCH.md` - Technical details, MedGemma benchmarks, Colombian healthcare context, API documentation
 - `ROADMAP.md` - Project timeline with checkboxes for task tracking
@@ -109,3 +110,4 @@ Set log level via environment: `LOG_LEVEL=DEBUG uv run python ...`
 ## Workflow
 
 - **Update ROADMAP.md after changes are implemented** - Mark checkboxes complete, add progress notes, and log decisions as work is done
+- **For submission work, use `SUBMISSION_DECISION_PLAN.md` as gate** - Do not start packaging assets until GO criteria pass

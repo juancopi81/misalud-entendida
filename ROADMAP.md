@@ -3,6 +3,7 @@
 > **Deadline**: February 24, 2026
 > **Team**: 2 people (~15-20 hrs/week each)
 > **Competition**: MedGemma Impact Challenge (Kaggle)
+> **Decision gate first**: Follow `SUBMISSION_DECISION_PLAN.md` and complete GO/NO-GO before video/write-up packaging
 
 ---
 
@@ -67,7 +68,7 @@
 ---
 
 ## Phase 3: Polish & Submit (Weeks 4-5: Feb 10-24)
-**Goal**: Test, polish, and submit.
+**Goal**: Run GO/NO-GO decision sprint first, then package and submit only if GO.
 
 ### Track A: Testing & Quality (Person 1)
 | Status | Task | Notes |
@@ -81,6 +82,7 @@
 ### Track B: Submission Materials (Person 2)
 | Status | Task | Notes |
 |--------|------|-------|
+| [ ] | Evaluate GO/NO-GO gate | Must pass `SUBMISSION_DECISION_PLAN.md` thresholds before packaging |
 | [ ] | Script 3-min demo video | Use demo script from PROJECT_SPECS.md |
 | [ ] | Record demo video | Screen recording + narration |
 | [ ] | Write 3-page technical doc | Use template structure |
@@ -88,6 +90,7 @@
 | [ ] | Choose competition track | Main vs special award |
 
 ### Final Submission Checklist
+- [ ] GO gate passed (`SUBMISSION_DECISION_PLAN.md`)
 - [ ] Video uploaded (≤3 min)
 - [ ] Write-up complete (≤3 pages)
 - [ ] Code reproducible on Kaggle
@@ -96,6 +99,7 @@
 ---
 
 ## Quick Links
+- [SUBMISSION_DECISION_PLAN.md](./SUBMISSION_DECISION_PLAN.md) - GO/NO-GO decision sprint and submission gate
 - [PROJECT_SPECS.md](./PROJECT_SPECS.md) - Product specification
 - [RESEARCH.md](./RESEARCH.md) - Technical research
 - [Competition Page](https://www.kaggle.com/competitions/med-gemma-impact-challenge)
