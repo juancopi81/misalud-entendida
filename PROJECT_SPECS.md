@@ -93,8 +93,8 @@ Colombian patients struggle to understand their healthcare documents:
 
 - **Stack**:
   - MedGemma 1.5 4B (via HuggingFace transformers)
-  - Python FastAPI (backend)
-  - Gradio (rapid prototyping for demo)
+  - Python pipeline modules (`src/`) + Gradio app runtime for MVP
+  - FastAPI (deferred; not part of current MVP runtime)
   - SODA API for datos.gov.co (CUM drug registry, SISMED price data)
   - Google Colab / Kaggle Notebooks for reproducibility
 
@@ -234,12 +234,12 @@ def process_lab_results(image):
 
 ## Next Milestone
 
-**Goal**: Validate MedGemma 1.5 on Colombian documents
+**Goal**: Phase 3 quality hardening and submission readiness
 
 **Tasks**:
 
-- [ ] Test MedGemma 1.5 on sample Colombian prescriptions
-- [ ] Test lab report extraction with Colombian lab formats
-- [ ] Validate SODA API access to CUM and SISMED
-- [ ] Confirm offline inference is feasible
-- [ ] If extraction quality is good → build prescription pipeline
+- [ ] Evaluate 5+ real prescriptions and document extraction accuracy
+- [ ] Evaluate 3+ real lab reports and document extraction accuracy
+- [ ] Resolve extraction edge cases found in evaluation
+- [ ] Validate Spanish explanation quality with native reviewers
+- [ ] Finalize competition assets (3-min video, 3-page write-up, Kaggle reproducibility)

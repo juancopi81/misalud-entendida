@@ -7,6 +7,10 @@ Usage:
     uv run python -m src.app
 """
 
+import os
+from contextlib import nullcontext
+from typing import Any, Callable
+
 import gradio as gr
 
 from src.pipelines import build_lab_results_output, build_prescription_output
@@ -18,16 +22,92 @@ from src.models import LabResultExtraction, PrescriptionExtraction
 
 logger = get_logger("src.app")
 
-# Backend is initialized lazily within Modal context
-_backend = None
+# Backend configuration
+BACKEND_ENV_VAR = "INFERENCE_BACKEND"
+SUPPORTED_BACKENDS = ("modal", "transformers")
+DEFAULT_BACKEND_MODE = "auto"
+
+# Backends are initialized lazily and cached by name
+_backend_cache: dict[str, Any] = {}
 
 
-def get_modal_backend():
-    """Get the Modal backend, initializing if needed."""
-    global _backend
-    if _backend is None:
-        _backend = get_backend("modal")
-    return _backend
+def _resolve_backend_order() -> list[str]:
+    """Resolve backend order from INFERENCE_BACKEND env var."""
+    configured = os.environ.get(BACKEND_ENV_VAR, DEFAULT_BACKEND_MODE).strip().lower()
+    if configured == "auto":
+        return ["modal", "transformers"]
+
+    if configured in SUPPORTED_BACKENDS:
+        return [configured]
+
+    logger.warning(
+        "Invalid %s=%r. Supported values: auto, modal, transformers. Falling back to auto.",
+        BACKEND_ENV_VAR,
+        configured,
+    )
+    return ["modal", "transformers"]
+
+
+def _get_backend_instance(backend_name: str) -> Any:
+    """Get backend instance by name, lazily initialized and cached."""
+    backend = _backend_cache.get(backend_name)
+    if backend is None:
+        logger.info("Initializing inference backend: %s", backend_name)
+        backend = get_backend(backend_name)
+        _backend_cache[backend_name] = backend
+    return backend
+
+
+def _get_backend_context(backend_name: str):
+    """Return execution context manager for the requested backend."""
+    if backend_name == "modal":
+        return modal_app.run()
+    return nullcontext()
+
+
+def _run_extraction_with_fallback(
+    image_path: str,
+    task_label: str,
+    method_name: str,
+    is_valid_result: Callable[[Any], bool],
+) -> Any:
+    """Run extraction using configured backend order with graceful fallback."""
+    backend_order = _resolve_backend_order()
+    errors: list[str] = []
+
+    for backend_name in backend_order:
+        try:
+            backend = _get_backend_instance(backend_name)
+            logger.info("Trying backend=%s for %s", backend_name, task_label)
+
+            with _get_backend_context(backend_name):
+                with log_timing(logger, f"{task_label}.extract.{backend_name}"):
+                    result = getattr(backend, method_name)(image_path)
+
+            if is_valid_result(result):
+                logger.info("%s extraction succeeded with backend=%s", task_label, backend_name)
+                return result
+
+            parse_success = getattr(result, "parse_success", False)
+            logger.warning(
+                "%s extraction returned invalid result with backend=%s (parse_success=%s)",
+                task_label,
+                backend_name,
+                parse_success,
+            )
+            errors.append(f"{backend_name}: extracción inválida (parse_success={parse_success})")
+        except Exception as exc:
+            logger.exception(
+                "%s extraction failed with backend=%s: %s", task_label, backend_name, exc
+            )
+            errors.append(f"{backend_name}: {exc}")
+
+    attempted = ", ".join(backend_order)
+    details = " | ".join(errors) if errors else "sin detalles"
+    raise RuntimeError(
+        f"No se logró extraer información con los backends configurados ({attempted}). "
+        f"Detalle: {details}"
+    )
 
 
 # Required disclaimer per CLAUDE.md
@@ -58,14 +138,12 @@ def analyze_prescription(image_path: str | None) -> tuple[str, str, str, str]:
 
     try:
         logger.info("Starting prescription analysis: %s", image_path)
-
-        # Extract prescription data using MedGemma (within Modal context)
-        with modal_app.run():
-            logger.info("Initializing Modal backend")
-            backend = get_modal_backend()
-            logger.info("Running MedGemma prescription extraction")
-            with log_timing(logger, "prescription.extract"):
-                result: PrescriptionExtraction = backend.extract_prescription(image_path)
+        result: PrescriptionExtraction = _run_extraction_with_fallback(
+            image_path=image_path,
+            task_label="prescription",
+            method_name="extract_prescription",
+            is_valid_result=lambda r: r.parse_success and bool(r.medicamentos),
+        )
 
         if not result.parse_success or not result.medicamentos:
             logger.warning(
@@ -115,14 +193,12 @@ def analyze_lab_results(image_path: str | None) -> str:
 
     try:
         logger.info("Starting lab results analysis: %s", image_path)
-
-        # Extract lab results using MedGemma (within Modal context)
-        with modal_app.run():
-            logger.info("Initializing Modal backend")
-            backend = get_modal_backend()
-            logger.info("Running MedGemma lab extraction")
-            with log_timing(logger, "lab.extract"):
-                result: LabResultExtraction = backend.extract_lab_results(image_path)
+        result: LabResultExtraction = _run_extraction_with_fallback(
+            image_path=image_path,
+            task_label="lab",
+            method_name="extract_lab_results",
+            is_valid_result=lambda r: r.parse_success and bool(r.resultados),
+        )
 
         if not result.parse_success or not result.resultados:
             logger.warning(

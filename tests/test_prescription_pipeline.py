@@ -39,6 +39,7 @@ class TestPrescriptionPipeline:
             generics=[sample_cum_record],
             prices=[],
             price_summary={"min": 1000.0, "max": 2000.0, "avg": 1500.0, "fecha_datos": "2020-01-01"},
+            warnings=["No se pudieron obtener precios de referencia en este momento."],
         )
 
         def fake_enrich(name, dosage="", limit=5):
@@ -55,3 +56,4 @@ class TestPrescriptionPipeline:
         assert "Alternativas para" in result.generics_markdown
         assert "Precio referencia" in result.prices_markdown
         assert "Aviso" in result.explanations_markdown
+        assert "Avisos de disponibilidad" in result.explanations_markdown
