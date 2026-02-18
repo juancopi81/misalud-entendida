@@ -26,7 +26,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.inference.medgemma import get_backend
 from src.inference.utils import extract_json_from_response
-from src.inference.modal_app import app as modal_app
 from src.logger import get_logger
 from src.models import LabResultExtraction
 from src.prompts import CLINICAL_RECORD_PROMPT
@@ -186,67 +185,65 @@ def main():
             logger.warning("No tests selected.")
             return 1
     else:
-        # Start Modal app context so functions can hydrate
         with modal.enable_output():
-            with modal_app.run():
-                backend = get_backend("modal")
+            backend = get_backend("modal")
 
-                # Test prescription extraction
-                if should_run("prescription"):
-                    if prescription_path.exists():
-                        results["prescription"] = validate_prescription(
-                            backend, prescription_path
-                        )
-                    else:
-                        logger.warning(
-                            f"WARNING: Prescription sample not found at {prescription_path}"
-                        )
-                        results["prescription"] = False
+            # Test prescription extraction
+            if should_run("prescription"):
+                if prescription_path.exists():
+                    results["prescription"] = validate_prescription(
+                        backend, prescription_path
+                    )
+                else:
+                    logger.warning(
+                        f"WARNING: Prescription sample not found at {prescription_path}"
+                    )
+                    results["prescription"] = False
 
-                # Test lab results extraction
-                if should_run("lab_results"):
-                    if args.lab_raw is not None:
-                        raw_response = args.lab_raw.read_text(encoding="utf-8")
-                        results["lab_results"] = validate_lab_results_from_raw(
-                            raw_response
-                        )
-                    elif lab_results_path.exists():
-                        results["lab_results"] = validate_lab_results(
-                            backend, lab_results_path, save_raw_path=args.save_lab_raw
-                        )
-                    else:
-                        logger.warning(
-                            f"WARNING: Lab results sample not found at {lab_results_path}"
-                        )
-                        results["lab_results"] = False
+            # Test lab results extraction
+            if should_run("lab_results"):
+                if args.lab_raw is not None:
+                    raw_response = args.lab_raw.read_text(encoding="utf-8")
+                    results["lab_results"] = validate_lab_results_from_raw(
+                        raw_response
+                    )
+                elif lab_results_path.exists():
+                    results["lab_results"] = validate_lab_results(
+                        backend, lab_results_path, save_raw_path=args.save_lab_raw
+                    )
+                else:
+                    logger.warning(
+                        f"WARNING: Lab results sample not found at {lab_results_path}"
+                    )
+                    results["lab_results"] = False
 
-                # Test clinical record (using raw extraction - validation only, not MVP)
-                if should_run("clinical_record"):
-                    if clinical_record_path.exists():
-                        logger.info("%s", "=" * 60)
-                        logger.info(
-                            "Testing clinical record extraction: %s",
-                            clinical_record_path.name,
-                        )
-                        logger.info("%s", "=" * 60)
+            # Test clinical record (using raw extraction - validation only, not MVP)
+            if should_run("clinical_record"):
+                if clinical_record_path.exists():
+                    logger.info("%s", "=" * 60)
+                    logger.info(
+                        "Testing clinical record extraction: %s",
+                        clinical_record_path.name,
+                    )
+                    logger.info("%s", "=" * 60)
 
-                        # Use raw extraction with a general prompt for clinical records
-                        raw_result = backend.extract_raw(
-                            clinical_record_path,
-                            CLINICAL_RECORD_PROMPT,
-                        )
-                        logger.info("--- Raw Response ---")
-                        logger.info(
-                            raw_result[:800] + "..."
-                            if len(raw_result) > 800
-                            else raw_result
-                        )
-                        results["clinical_record"] = len(raw_result) > 50
-                    else:
-                        logger.warning(
-                            f"WARNING: Clinical record sample not found at {clinical_record_path}"
-                        )
-                        results["clinical_record"] = False
+                    # Use raw extraction with a general prompt for clinical records
+                    raw_result = backend.extract_raw(
+                        clinical_record_path,
+                        CLINICAL_RECORD_PROMPT,
+                    )
+                    logger.info("--- Raw Response ---")
+                    logger.info(
+                        raw_result[:800] + "..."
+                        if len(raw_result) > 800
+                        else raw_result
+                    )
+                    results["clinical_record"] = len(raw_result) > 50
+                else:
+                    logger.warning(
+                        f"WARNING: Clinical record sample not found at {clinical_record_path}"
+                    )
+                    results["clinical_record"] = False
 
     # Summary
     logger.info("%s", "=" * 60)

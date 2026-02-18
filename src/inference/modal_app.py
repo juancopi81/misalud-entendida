@@ -36,7 +36,8 @@ image = (
     gpu="A10G",
     timeout=60 * 10,  # 10 minutes
     secrets=[modal.Secret.from_name("huggingface")],
-    min_containers=1,
+    min_containers=0,
+    scaledown_window=300,
 )
 class MedGemmaModel:
     """Warm-started MedGemma container to avoid reloading on each call."""
