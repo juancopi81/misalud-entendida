@@ -36,6 +36,16 @@ FastAPI is currently deferred for MVP. The active runtime is Gradio + pipeline m
 uv sync --all-groups
 ```
 
+## Deploy Modal backend
+
+Required once, and after any changes to `src/inference/modal_app.py`:
+
+```bash
+uv run modal deploy src/inference/modal_app.py
+```
+
+> **Note**: Adding or rotating the `huggingface` secret in Modal also requires a redeploy for running containers to pick it up.
+
 ## Run the app
 
 ```bash

@@ -47,6 +47,11 @@ class MedGemmaModel:
         from transformers import AutoModelForImageTextToText, AutoProcessor
 
         hf_token = os.environ.get("HF_TOKEN")
+        if not hf_token:
+            raise ValueError(
+                "HF_TOKEN environment variable required for MedGemma access. "
+                "Add the 'huggingface' secret to your Modal app and redeploy."
+            )
         logger.info("Loading MedGemma model in Modal: %s", MODEL_ID)
         with log_timing(logger, "modal.setup.load_processor"):
             self.processor = AutoProcessor.from_pretrained(
