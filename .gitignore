@@ -20,3 +20,6 @@ eval/ocrmac_lab_compare_report.json
 # Local staging workspaces for labeling batches
 eval/staging/
 eval/staging_archive/
+
+# Review app backups
+eval/backups/
