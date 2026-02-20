@@ -322,7 +322,7 @@ def create_review_app() -> gr.Blocks:
             )
 
         save_btn = gr.Button("Guardar", variant="primary")
-        status_msg = gr.Textbox(label="Estado", interactive=False)
+        status_msg = gr.Textbox(label="Mensaje", interactive=False)
 
         # ── Outputs list (shared across handlers) ────────────────────────
         display_outputs = [

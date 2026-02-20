@@ -14,6 +14,7 @@ Data flow:
 
 from dataclasses import dataclass, field
 import json
+from typing import Any, Literal
 
 
 # --- MedGemma Extraction Models ---
@@ -182,3 +183,112 @@ class PriceRecord:
     fechacorte: str  # Report date
     tipo_reporte: str  # "VENTA" or "COMPRA"
     tipo_entidad: str  # "LABORATORIO", "MAYORISTA", etc.
+
+
+# --- Unified Document Orchestration Models ---
+
+DocumentKind = Literal["prescription", "lab", "unknown"]
+EvidenceSource = Literal["text_pdf", "image", "pdf_no_text", "unsupported"]
+
+
+@dataclass
+class RouteDecision:
+    """Result of routing a generic document to an internal processing flow."""
+
+    kind: DocumentKind = "unknown"
+    confidence: float = 0.0
+    method: str = "heuristic"
+    reasons: list[str] = field(default_factory=list)
+    raw_response: str = ""
+
+
+@dataclass
+class DocumentChatContext:
+    """Minimal grounded context used for follow-up Q&A."""
+
+    document_kind: DocumentKind
+    report_markdown: str
+    extracted_text: str
+    extracted_json: dict[str, Any] = field(default_factory=dict)
+    warnings: list[str] = field(default_factory=list)
+    uncertainty_notes: list[str] = field(default_factory=list)
+    route_confidence: float = 0.0
+    evidence_source: EvidenceSource = "unsupported"
+
+    def to_prompt_payload(self) -> str:
+        """Serialize context to JSON for grounded prompt injection."""
+        payload = {
+            "document_kind": self.document_kind,
+            "route_confidence": round(self.route_confidence, 3),
+            "evidence_source": self.evidence_source,
+            "warnings": self.warnings,
+            "uncertainty_notes": self.uncertainty_notes,
+            "extracted_json": self.extracted_json,
+            "report_markdown": self.report_markdown,
+            "extracted_text": self.extracted_text,
+        }
+        return json.dumps(payload, ensure_ascii=False)
+
+
+@dataclass
+class UnifiedDocumentResult:
+    """Output of the unified document analysis flow."""
+
+    file_path: str
+    evidence_source: EvidenceSource
+    evidence_quality: float
+    route: RouteDecision
+    report_markdown: str
+    warnings: list[str] = field(default_factory=list)
+    uncertainty_notes: list[str] = field(default_factory=list)
+    extracted_text: str = ""
+    parse_success: bool = False
+    raw_verification_response: str = ""
+    used_backend: str = ""
+    prescription: PrescriptionExtraction | None = None
+    lab: LabResultExtraction | None = None
+    prescription_output: str = ""
+    lab_output: str = ""
+
+    def to_chat_context(self) -> DocumentChatContext:
+        """Build grounded chat context from the unified result."""
+        extracted_json: dict[str, Any]
+        if self.prescription is not None:
+            extracted_json = {
+                "medicamentos": [
+                    {
+                        "nombre_medicamento": m.nombre_medicamento,
+                        "dosis": m.dosis,
+                        "frecuencia": m.frecuencia,
+                        "duracion": m.duracion,
+                        "instrucciones": m.instrucciones,
+                    }
+                    for m in self.prescription.medicamentos
+                ]
+            }
+        elif self.lab is not None:
+            extracted_json = {
+                "resultados": [
+                    {
+                        "nombre_prueba": r.nombre_prueba,
+                        "valor": r.valor,
+                        "unidad": r.unidad,
+                        "rango_referencia": r.rango_referencia,
+                        "estado": r.estado,
+                    }
+                    for r in self.lab.resultados
+                ]
+            }
+        else:
+            extracted_json = {}
+
+        return DocumentChatContext(
+            document_kind=self.route.kind,
+            report_markdown=self.report_markdown,
+            extracted_text=self.extracted_text,
+            extracted_json=extracted_json,
+            warnings=list(self.warnings),
+            uncertainty_notes=list(self.uncertainty_notes),
+            route_confidence=self.route.confidence,
+            evidence_source=self.evidence_source,
+        )

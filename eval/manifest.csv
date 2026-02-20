@@ -19,7 +19,7 @@ presc_017,prescription,samples/prescriptions/test_14.jpg,,starter_samples,baseli
 presc_018,prescription,samples/prescriptions/test_15.png,,starter_samples,baseline,codex,labeled,,yes,Agent D staging label
 presc_019,prescription,samples/prescriptions/test_16.png,,starter_samples,baseline,codex,labeled,,yes,Agent E staging label
 presc_020,prescription,samples/prescriptions/test_17.png,,starter_samples,baseline,codex,labeled,,yes,Agent E staging label
-lab_001,lab,samples/lab_results/resultados_laboratorio_2025_p1.jpeg,,starter_samples,baseline,codex,labeled,,yes,Page 1
+lab_001,lab,samples/lab_results/resultados_laboratorio_2025_p1.jpeg,,starter_samples,baseline,codex,reviewed,Juan,yes,Page 1
 lab_002,lab,samples/lab_results/resultados_laboratorio_2025_p1.jpeg,samples/lab_results/resultados_laboratorio_2025_p2.jpeg,starter_samples,baseline,codex,labeled,,yes,Two-page report
 lab_003,lab,samples/lab_results/test_1.jpg,,starter_samples,baseline,codex,labeled,,yes,Agent A staging label
 lab_004,lab,samples/lab_results/test_2.jpeg,,starter_samples,baseline,codex,labeled,,yes,Agent A staging label

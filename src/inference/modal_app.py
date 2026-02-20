@@ -162,6 +162,59 @@ class MedGemmaModel:
         logger.info("Modal response size (raw=%d)", len(response))
         return response
 
+    @modal.method()
+    def generate_from_text(
+        self,
+        prompt: str,
+        max_new_tokens: int = MAX_NEW_TOKENS_DEFAULT,
+    ) -> str:
+        """Text-only generation for routing and grounded follow-up Q&A."""
+        import torch
+
+        from src.prompts import SYSTEM_INSTRUCTION
+
+        logger.info(
+            "Modal generate_from_text start (prompt_chars=%d, max_new_tokens=%d)",
+            len(prompt),
+            max_new_tokens,
+        )
+
+        messages = [
+            {
+                "role": "system",
+                "content": [{"type": "text", "text": SYSTEM_INSTRUCTION}],
+            },
+            {
+                "role": "user",
+                "content": [{"type": "text", "text": prompt}],
+            },
+        ]
+
+        with log_timing(logger, "modal.text.apply_chat_template"):
+            inputs = self.processor.apply_chat_template(
+                messages,
+                add_generation_prompt=True,
+                tokenize=True,
+                return_dict=True,
+                return_tensors="pt",
+            ).to(self.model.device, dtype=torch.bfloat16)
+
+        with torch.inference_mode():
+            with log_timing(logger, "modal.text.generate"):
+                outputs = self.model.generate(
+                    **inputs,
+                    max_new_tokens=max_new_tokens,
+                    do_sample=False,
+                )
+
+        input_len = inputs["input_ids"].shape[-1]
+        with log_timing(logger, "modal.text.decode_output"):
+            response = self.processor.decode(
+                outputs[0][input_len:], skip_special_tokens=True
+            )
+        logger.info("Modal text response size (raw=%d)", len(response))
+        return response
+
 
 @app.local_entrypoint()
 def main():

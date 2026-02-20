@@ -60,3 +60,64 @@ NOTE: This is used for VALIDATION ONLY (scripts/validate_extraction.py).
 Clinical records are not part of MVP scope - no dedicated UI tab or extraction function.
 Kept here for consistency and future reference.
 """
+
+
+# --- Unified Flow Prompts ---
+
+DOC_TYPE_CLASSIFIER_PROMPT = """Clasifica el siguiente documento médico colombiano.
+Debes responder SOLO con un objeto JSON válido y nada más.
+
+Opciones de document_type:
+- "prescription" (receta médica)
+- "lab" (resultado/examen de laboratorio)
+- "unknown" (no se puede determinar)
+
+Incluye confidence como número entre 0 y 1 y una razón breve.
+Formato exacto:
+{{"document_type":"prescription|lab|unknown","confidence":0.0,"reason":"..."}}
+
+Evidencia de texto detectada:
+{evidence_text}
+"""
+
+PRESCRIPTION_VERIFY_PROMPT = """Analiza este documento y valida/corrige la extracción de receta.
+Usa la imagen y también la evidencia de texto detectada para resolver ambigüedades.
+Si un campo no es confiable, déjalo como cadena vacía.
+
+Responde SOLO con un único JSON válido y nada más:
+{{"medicamentos":[{{"nombre_medicamento":"...","dosis":"...","frecuencia":"...","duracion":"...","instrucciones":"..."}}]}}
+
+Pistas de contexto:
+- tipo_sugerido: {route_hint}
+- evidencia_texto:
+{evidence_text}
+"""
+
+LAB_VERIFY_PROMPT = """Analiza este documento y valida/corrige la extracción de laboratorio.
+Usa la imagen y también la evidencia de texto detectada para resolver ambigüedades.
+Si un campo no es confiable, déjalo como cadena vacía.
+
+Responde SOLO con un único JSON válido y nada más:
+{{"resultados":[{{"nombre_prueba":"...","valor":"...","unidad":"...","rango_referencia":"...","estado":"normal|alto|bajo|"}}]}}
+
+Pistas de contexto:
+- tipo_sugerido: {route_hint}
+- evidencia_texto:
+{evidence_text}
+"""
+
+FOLLOWUP_GROUNDED_QA_PROMPT = """Eres un asistente para explicar documentos médicos.
+Reglas obligatorias:
+1) Responde SOLO usando el CONTEXTO.
+2) Si no está en el contexto, responde: "No se puede confirmar con la información disponible."
+3) No inventes diagnósticos ni cambies tratamientos/dosis.
+4) Si la pregunta pide diagnóstico o ajuste de tratamiento, rechaza y sugiere consultar al médico.
+5) Responde en español claro y breve.
+6) Cierra con: "Esta herramienta es educativa y no reemplaza el consejo médico."
+
+CONTEXTO:
+{context_payload}
+
+PREGUNTA:
+{question}
+"""

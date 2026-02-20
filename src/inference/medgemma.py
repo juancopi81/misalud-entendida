@@ -46,6 +46,15 @@ class MedGemmaBackend(ABC):
         """Run raw extraction and return model response as string."""
         pass
 
+    @abstractmethod
+    def generate_text(
+        self,
+        prompt: str,
+        max_new_tokens: int = MAX_NEW_TOKENS_DEFAULT,
+    ) -> str:
+        """Run text-only generation and return model response as string."""
+        pass
+
     def extract_prescription(self, image_path: str | Path) -> PrescriptionExtraction:
         """Extract prescription data from an image."""
         logger.info("Extracting prescription from %s", image_path)
@@ -128,6 +137,29 @@ class ModalBackend(MedGemmaBackend):
         logger.debug("Modal call complete, response length: %d", len(result) if result else 0)
         return result
 
+    def generate_text(
+        self,
+        prompt: str,
+        max_new_tokens: int = MAX_NEW_TOKENS_DEFAULT,
+    ) -> str:
+        """Call deployed Modal function for text-only generation."""
+        import modal
+
+        from .modal_app import APP_NAME, CLS_NAME
+
+        logger.info(
+            "Submitting Modal text request (prompt_chars=%d, max_new_tokens=%d)",
+            len(prompt),
+            max_new_tokens,
+        )
+        Model = modal.Cls.from_name(APP_NAME, CLS_NAME)
+        model = Model()
+        with log_timing(logger, "modal.generate_from_text.remote"):
+            result = model.generate_from_text.remote(prompt, max_new_tokens=max_new_tokens)
+        logger.info("Modal text request finished")
+        logger.debug("Modal text response length: %d", len(result) if result else 0)
+        return result
+
 
 class TransformersBackend(MedGemmaBackend):
     """Backend for direct local GPU inference using transformers.
@@ -178,7 +210,6 @@ class TransformersBackend(MedGemmaBackend):
         max_new_tokens: int = MAX_NEW_TOKENS_DEFAULT,
     ) -> str:
         """Run local inference to extract from image."""
-        import torch
         from PIL import Image
 
         self._load_model()
@@ -204,6 +235,35 @@ class TransformersBackend(MedGemmaBackend):
             },
         ]
 
+        return self._generate_with_messages(messages, max_new_tokens)
+
+    def generate_text(
+        self,
+        prompt: str,
+        max_new_tokens: int = MAX_NEW_TOKENS_DEFAULT,
+    ) -> str:
+        """Run local text-only generation."""
+        self._load_model()
+        messages = [
+            {
+                "role": "system",
+                "content": [{"type": "text", "text": SYSTEM_INSTRUCTION}],
+            },
+            {
+                "role": "user",
+                "content": [{"type": "text", "text": prompt}],
+            },
+        ]
+        return self._generate_with_messages(messages, max_new_tokens)
+
+    def _generate_with_messages(
+        self,
+        messages: list[dict],
+        max_new_tokens: int,
+    ) -> str:
+        """Generate model output from already-formatted chat messages."""
+        import torch
+
         # Process input (cast to bfloat16 per official docs)
         inputs = self._processor.apply_chat_template(
             messages,
@@ -225,8 +285,6 @@ class TransformersBackend(MedGemmaBackend):
         response = self._processor.decode(
             outputs[0][input_len:], skip_special_tokens=True
         )
-
-        # Return raw response to allow local parsing/logging
         return response
 
 
