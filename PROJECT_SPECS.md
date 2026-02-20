@@ -74,17 +74,20 @@ Colombian patients struggle to understand their healthcare documents:
 
 - Photo → prescription extraction and explanation
 - Photo → lab results interpretation
+- Unified document flow: PDF/image ingestion → route → MedGemma verification → report
 - Price lookup via SISMED data (datos.gov.co SODA)
 - Generic alternatives via CUM data (datos.gov.co SODA)
 - Basic medication tracking (session-based)
 - Interaction warnings for common combinations
 - Spanish-language UI
+- Grounded follow-up Q&A based on extracted/enriched evidence
 - Offline-capable inference (demonstrate model can run locally)
 
 ### Out of Scope (for now)
 
 - User accounts / persistent history
 - Handwritten prescription OCR (focus on printed for demo reliability)
+- Full scanned-PDF OCR runtime in production (current unified flow expects text PDFs or images)
 - Integration with EPS/insurance systems
 - Push notifications / reminders
 - Multi-language support
@@ -184,7 +187,31 @@ def process_lab_results(image):
 | **Problem domain** | Clear user personas, quantifiable pain, Colombian context |
 | **Impact potential** | Cite WHO data on medication errors, Colombian health literacy stats |
 | **Product feasibility** | All components proven: MedGemma benchmarks, open APIs, Gradio deployment |
-| **Execution** | Compelling demo: 2 use cases (prescription + labs), visual before/after |
+| **Execution** | Compelling demo: unified upload → verify/enrich report → grounded Q&A, plus legacy tabs for robustness |
+
+## Why MedGemma Beyond OCR
+
+The architecture now uses MedGemma as a verifier/reasoner layer:
+
+1. Ingestion and deterministic routing happen first (cheap, fast).
+2. MedGemma verifies/corrects structured extraction using image + text evidence.
+3. CUM/SISMED enrichers add deterministic drug and price context.
+4. A grounded Q&A layer answers only from extracted/tool evidence and explicitly states uncertainty.
+
+Evidence anchors for submission write-up:
+
+- OCR baseline artifacts:
+  - `eval/ocrmac_prescriptions_compare_report.json`
+  - `eval/ocrmac_lab_compare_report.json`
+- Hybrid runtime components:
+  - `src/pipelines/document_orchestrator.py`
+  - `src/pipelines/document_chat.py`
+
+Three concrete failure-to-success examples to showcase:
+
+1. Ambiguous doc type resolved via MedGemma fallback classifier.
+2. Low-quality evidence corrected in verification JSON before enrichment.
+3. Follow-up user questions answered with strict grounding instead of free-form hallucination.
 
 ## Success Metrics
 
@@ -215,10 +242,10 @@ def process_lab_results(image):
 
 ```
 0:00-0:30  Problem statement + user persona (María, 58, diabética)
-0:30-1:15  Demo 1: Prescription photo → explanation + price + generic
-1:15-2:00  Demo 2: Lab results photo → plain language + flags
-2:00-2:30  Show: Medication tracker + interaction warning
-2:30-3:00  Impact potential + why MedGemma 1.5 enables this
+0:30-1:20  Demo 1: Unified tab (PDF/image) → route + MedGemma verification + report
+1:20-2:00  Demo 2: Grounded follow-up Q&A with explicit uncertainty behavior
+2:00-2:30  Show: Legacy tabs + medication tracker fallback value
+2:30-3:00  Impact potential + why MedGemma beyond OCR
 ```
 
 ## Deliverables for Competition

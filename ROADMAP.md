@@ -96,6 +96,16 @@
 - [ ] Code reproducible on Kaggle
 - [ ] Submitted before Feb 24, 2026 11:59 PM UTC
 
+### Immediate App-Ready Plan (Feb 20-24)
+
+| Priority | Task | Output |
+|----------|------|--------|
+| P0 | Run reliability gate on unified flow (20 prescriptions, 10 labs) | Metrics table: route accuracy, parse success, grounded chat behavior |
+| P0 | Validate failure paths in UI (`pdf_no_text`, unknown route, provider outage, missing chat context) | Stable, user-readable fallback messages in all cases |
+| P0 | Run deployment smoke checks with `INFERENCE_BACKEND=auto` after Modal deploy | End-to-end demo flow verified in `Documento + Preguntas` |
+| P1 | Capture 3 failure-to-success examples for hybrid verify architecture | Reusable evidence for video + write-up ("Why MedGemma beyond OCR") |
+| P1 | Freeze submission artifacts after GO decision | Final 3-minute demo + 3-page write-up + Kaggle reproducibility |
+
 ---
 
 ## Quick Links
@@ -113,6 +123,7 @@
 | Date | Decision | Rationale |
 |------|----------|-----------|
 | Feb 10 | Runtime strategy: Modal-first with configurable Transformers fallback | Keeps current demo reliability while enabling local fallback via `INFERENCE_BACKEND` |
+| Feb 20 | Hybrid orchestration (ingestion -> route -> verify -> enrich -> grounded Q&A) | Positions MedGemma as verifier/reasoner beyond plain transcription |
 | Jan 20 | SISMED prices are "reference only" | Data is from 2019, show date to users |
 | Jan 20 | Link CUM→SISMED via expedientecum | Shared field enables price lookup for drugs |
 | Jan 20 | Use Modal A10G for inference | Pay-per-use (~$0.36/hr), 24GB VRAM, local dev + remote inference |
@@ -220,4 +231,12 @@ _Update this section as you complete tasks._
   - Added integration tests for app handler fallback and API failure paths
 
 ### Week 5
--
+- **Feb 20**: Hybrid document orchestrator + grounded Q&A
+  - Added unified ingestion for PDF/image inputs (`src/io/document_ingestion.py`)
+  - Added heuristic-first router with MedGemma fallback classifier (`src/pipelines/document_router.py`)
+  - Added unified orchestrator (`src/pipelines/document_orchestrator.py`)
+  - Added strict grounded follow-up Q&A (`src/pipelines/document_chat.py`)
+  - Added new Gradio tab: **Documento + Preguntas** while preserving existing tabs
+  - Added text-only MedGemma generation support in both backends for routing/chat
+  - Added tests for ingestion, routing, orchestrator, grounded chat, and app handlers
+  - Documented scanned-PDF limitation (no production OCR runtime in this iteration)

@@ -10,3 +10,16 @@ wheels/
 .venv
 
 .DS_Store
+
+# Generated local OCR artifacts (labeling helper only)
+eval/ocrmac_prescriptions_raw.jsonl
+eval/ocrmac_prescriptions_compare_report.json
+eval/ocrmac_lab_raw.jsonl
+eval/ocrmac_lab_compare_report.json
+
+# Local staging workspaces for labeling batches
+eval/staging/
+eval/staging_archive/
+
+# Review app backups
+eval/backups/

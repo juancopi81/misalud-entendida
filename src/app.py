@@ -12,11 +12,16 @@ from typing import Any, Callable
 
 import gradio as gr
 
-from src.pipelines import build_lab_results_output, build_prescription_output
+from src.pipelines import (
+    answer_question as answer_document_question,
+    analyze_document as analyze_generic_document,
+    build_lab_results_output,
+    build_prescription_output,
+)
 from src.inference import get_backend
 from src.interactions import Interaction, check_interactions
 from src.logger import get_logger, log_timing
-from src.models import LabResultExtraction, PrescriptionExtraction
+from src.models import DocumentChatContext, LabResultExtraction, PrescriptionExtraction
 
 logger = get_logger("src.app")
 
@@ -211,6 +216,52 @@ def analyze_lab_results(image_path: str | None) -> str:
         return f"Error al analizar los resultados: {str(e)}"
 
 
+# --- Unified Document + Q&A Functions ---
+
+
+def analyze_document_with_followups(
+    file_path: str | None,
+) -> tuple[str, DocumentChatContext | None, list[tuple[str, str]], str]:
+    """Analyze a generic medical document and initialize follow-up chat context."""
+    logger.info("Analyze unified document button clicked")
+    if not file_path:
+        return "Por favor suba un documento PDF o una imagen.", None, [], ""
+
+    try:
+        logger.info("Starting unified analysis: %s", file_path)
+        result = analyze_generic_document(file_path, backend_name=os.environ.get(BACKEND_ENV_VAR, "auto"))
+        context = result.to_chat_context()
+        return result.report_markdown, context, [], ""
+    except Exception as exc:
+        logger.exception("Unified document analysis failed: %s", exc)
+        return (
+            f"Error al analizar el documento: {exc}",
+            None,
+            [],
+            "",
+        )
+
+
+def ask_document_followup(
+    question: str,
+    history: list[tuple[str, str]] | None,
+    context: DocumentChatContext | None,
+) -> tuple[list[tuple[str, str]], str]:
+    """Answer a follow-up question grounded on the analyzed document context."""
+    history = history or []
+    question_clean = (question or "").strip()
+    if not question_clean:
+        return history, ""
+
+    answer = answer_document_question(
+        question_clean,
+        context,
+        backend_name=os.environ.get(BACKEND_ENV_VAR, "auto"),
+    )
+    history.append((question_clean, answer))
+    return history, ""
+
+
 # --- Medication Tracker Functions ---
 
 
@@ -336,6 +387,64 @@ def create_app() -> gr.Blocks:
 
         # Tabs
         with gr.Tabs():
+            # --- Unified Document Tab ---
+            with gr.Tab("Documento + Preguntas"):
+                gr.Markdown("## Analiza un Documento y Haz Preguntas")
+                gr.Markdown(
+                    "Sube una imagen o PDF con texto digital. "
+                    "Después podrás hacer preguntas sobre el documento analizado."
+                )
+
+                document_file = gr.File(
+                    type="filepath",
+                    file_types=[".pdf", ".jpg", ".jpeg", ".png"],
+                    label="Documento (PDF o imagen)",
+                )
+                analyze_document_btn = gr.Button(
+                    "Analizar Documento",
+                    variant="primary",
+                    size="lg",
+                )
+                unified_report = gr.Markdown(
+                    "El reporte unificado aparecerá aquí.",
+                    label="Reporte Unificado",
+                )
+
+                document_context_state = gr.State(None)
+                unified_chatbot = gr.Chatbot(
+                    label="Preguntas sobre este documento",
+                    height=320,
+                )
+                with gr.Row():
+                    unified_chat_input = gr.Textbox(
+                        label="Pregunta de seguimiento",
+                        placeholder="Ej: ¿Qué valores están fuera de rango?",
+                        scale=4,
+                    )
+                    unified_chat_send = gr.Button("Enviar", variant="secondary", scale=1)
+
+                analyze_document_btn.click(
+                    fn=analyze_document_with_followups,
+                    inputs=[document_file],
+                    outputs=[
+                        unified_report,
+                        document_context_state,
+                        unified_chatbot,
+                        unified_chat_input,
+                    ],
+                )
+
+                unified_chat_send.click(
+                    fn=ask_document_followup,
+                    inputs=[unified_chat_input, unified_chatbot, document_context_state],
+                    outputs=[unified_chatbot, unified_chat_input],
+                )
+                unified_chat_input.submit(
+                    fn=ask_document_followup,
+                    inputs=[unified_chat_input, unified_chatbot, document_context_state],
+                    outputs=[unified_chatbot, unified_chat_input],
+                )
+
             # --- Recetas Tab ---
             with gr.Tab("Recetas"):
                 gr.Markdown("## Analiza tu Receta Médica")
